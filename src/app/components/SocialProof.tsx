@@ -23,6 +23,21 @@ const reviews = [
     text: 'Pure ingredients and fresh preparation. Been coming here for years, never disappointed.',
     highlight: 'Pure & Fresh'
   },
+  {
+    id: 4,
+    name: 'Deendayal P',
+    rating: 5,
+    text: 'The sweets are very good and pure. Once you get the chance, eat the sweets here, it is very tasty.',
+    highlight: 'Sweet & Tasty'
+  },
+  {
+    id: 5,
+    name: 'Jagat Shekhawat',
+    rating: 5,
+    text: 'Quality of sweets and other material, love to eat kachori here.',
+    highlight: 'So sweet'
+  },
+
 ];
 
 export function SocialProof() {
