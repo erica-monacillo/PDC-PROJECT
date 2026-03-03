@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, MapPin, Star } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ImageWithFallback } from './image/ImageWithFallback';
 
 export function Hero() {
   return (

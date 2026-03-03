@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, Heart, Leaf, Users, Coffee, Utensils, Flower2, CreditCard, ParkingCircle, Baby, Wifi, UtensilsCrossed } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ImageWithFallback } from './image/ImageWithFallback';
 
 const features = [
   {
