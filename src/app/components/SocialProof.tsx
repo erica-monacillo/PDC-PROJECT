@@ -37,6 +37,13 @@ const reviews = [
     text: 'Quality of sweets and other material, love to eat kachori here.',
     highlight: 'So sweet'
   },
+  {
+    id: 6,
+    name: 'Ramavtar घोडेला',
+    rating: 5,
+    text: 'Delicious foods and Sweets',
+    highlight: 'Sweet'
+  },
 
 ];
 
