@@ -32,10 +32,10 @@ export function Contact() {
                 <div>
                   <h4 className="font-semibold text-amber-100 mb-1">Phone</h4>
                   <a 
-                    href="tel:+919672113819" 
+                    href="tel:+919829004353" 
                     className="text-white text-lg hover:text-amber-200 transition-colors"
                   >
-                    +91 96721 13819
+                    +91 98290 04353
                   </a>
                   <p className="text-amber-200 text-sm mt-1">Call anytime during business hours</p>
                 </div>
@@ -48,9 +48,8 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-amber-100 mb-1">Address</h4>
-                  <p className="text-white text-lg">WPPX+94C, 115, Kirni Phatak, Gokulpura</p>
-                  <p className="text-white">तारा नगर मार्ग, Jhotwara</p>
-                  <p className="text-white">Jaipur, Rajasthan 302012, India</p>
+                  <p className="text-white text-lg">G9, near D Mart</p>
+                  <p className="text-white">Jaipur, Rajasthan 302044, India</p>
                 </div>
               </div>
 
@@ -70,7 +69,7 @@ export function Contact() {
             {/* CTA Button */}
             <div className="mt-8 pt-6 border-t border-white/20">
               <a
-                href="tel:+919672113819"
+                href="tel:+919829004353"
                 className="block w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-center px-8 py-4 rounded-xl font-semibold text-lg shadow-2xl transition-all transform hover:scale-105"
               >
                 Call Now for Fresh Sweets
@@ -89,15 +88,15 @@ export function Contact() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="w-16 h-16 text-amber-600 mx-auto mb-4" />
-                  <p className="text-amber-900 font-semibold text-lg">G.S Sweets</p>
-                  <p className="text-amber-700">Jhotwara, Jaipur</p>
+                  <p className="text-amber-900 font-semibold text-lg">Shri G S Sweets And Bakers</p>
+                  <p className="text-amber-700">Near D Mart, Jaipur</p>
                 </div>
               </div>
             </div>
 
             {/* Get Directions Button */}
             <a
-              href="https://maps.app.goo.gl/VfNPqUEeqUsciQuj7"
+              href="https://www.google.com/maps/place/Shri+G+S+Sweets+And+Bakers/@26.9544576,75.7085848,739m/data=!3m2!1e3!4b1!4m6!3m5!1s0x396c4d0ba72bdc2b:0x59047e24fa42f679!8m2!3d26.9544576!4d75.7085848!16s%2Fg%2F11v18skqcg!17m2!4m1!1e3!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full bg-white hover:bg-amber-50 text-amber-900 px-8 py-4 rounded-xl font-semibold shadow-lg transition-all"
@@ -118,14 +117,14 @@ export function Contact() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="tel:+919672113819"
+              href="tel:+919829004353"
               className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold shadow-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
-              +91 96721 13819
+              +91 98290 04353
             </a>
             <a
-              href="https://wa.me/919672113819"
+              href="https://wa.me/919829004353"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold shadow-xl transition-all transform hover:scale-105"

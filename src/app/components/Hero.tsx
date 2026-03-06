@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, MapPin, Star } from 'lucide-react';
-import { ImageWithFallback } from './image/ImageWithFallback';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function Hero() {
   return (
@@ -20,10 +20,10 @@ export function Hero() {
         {/* Business Name */}
         <div className="mb-6">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-3 drop-shadow-2xl">
-            G.S Sweets
+            Shri G S Sweets And Bakers
           </h1>
           <p className="text-3xl md:text-5xl text-amber-100 drop-shadow-lg">
-            जी.स स्वीट्स
+            श्री जी स स्वीट्स एंड बेकर्स
           </p>
         </div>
 
@@ -52,15 +52,15 @@ export function Hero() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <a
-            href="tel:+919672113819"
+            href="tel:+919829004353"
             className="w-full sm:w-auto group bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center gap-2"
           >
             <Phone className="w-5 h-5 group-hover:animate-pulse" />
-            Call Now +91 96721 13819
+            Call Now +91 98290 04353
           </a>
           
           <a
-            href="https://maps.app.goo.gl/VfNPqUEeqUsciQuj7"
+            href="https://www.google.com/maps/place/Shri+G+S+Sweets+And+Bakers/@26.9544576,75.7085848,739m/data=!3m2!1e3!4b1!4m6!3m5!1s0x396c4d0ba72bdc2b:0x59047e24fa42f679!8m2!3d26.9544576!4d75.7085848!16s%2Fg%2F11v18skqcg!17m2!4m1!1e3!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-2 border-white/30 px-8 py-4 rounded-xl font-semibold text-lg shadow-xl transition-all flex items-center justify-center gap-2"
@@ -73,7 +73,7 @@ export function Hero() {
         {/* Location Badge */}
         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-amber-100 text-sm">
           <MapPin className="w-4 h-4" />
-          <span>WPPX+94C, 115, Kirni Phatak, Gokulpura, Jhotwara, Jaipur</span>
+          <span>G9, near D Mart, Jaipur, Rajasthan 302044</span>
         </div>
       </div>
     </section>

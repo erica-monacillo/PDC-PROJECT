@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { ImageWithFallback } from './image/ImageWithFallback';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 const menuItems = [
   {

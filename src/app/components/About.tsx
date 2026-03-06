@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, Heart, Leaf, Users, Coffee, Utensils, Flower2, CreditCard, ParkingCircle, Baby, Wifi, UtensilsCrossed } from 'lucide-react';
-import { ImageWithFallback } from './image/ImageWithFallback';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 const features = [
   {
@@ -55,8 +55,8 @@ export function About() {
               Your Trusted Sweet Destination in Jaipur
             </h2>
             <p className="text-gray-700 text-lg mb-6 leading-relaxed">
-              Welcome to <span className="font-semibold text-amber-900">G.S Sweets (जी.स स्वीट्स)</span>, 
-              a cherished local sweet shop in the heart of Jhotwara, Jaipur. We take pride in serving 
+              Welcome to <span className="font-semibold text-amber-900">Shri G S Sweets And Bakers (श्री जी स स्वीट्स एंड बेकर्स)</span>, 
+              a cherished local sweet shop in the heart of Jaipur. We take pride in serving 
               authentic Indian sweets and savories made with pure ingredients and traditional recipes.
             </p>
             <p className="text-gray-700 text-lg mb-8 leading-relaxed">

@@ -72,8 +72,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-2xl mb-2">G.S Sweets</h3>
-              <p className="text-xl mb-4">जी.स स्वीट्स</p>
+              <h3 className="text-2xl mb-2">Shri G S Sweets And Bakers</h3>
+              <p className="text-xl mb-4">श्री जी स स्वीट्स एंड बेकर्स</p>
               <p className="text-amber-200 text-sm">Authentic Taste of Jaipur</p>
             </div>
             
@@ -92,11 +92,11 @@ export default function App() {
               <div className="space-y-2 text-sm text-amber-200">
                 <p className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <a href="tel:+919672113819" className="hover:text-white transition-colors">+91 96721 13819</a>
+                  <a href="tel:+919829004353" className="hover:text-white transition-colors">+91 98290 04353</a>
                 </p>
                 <p className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span>WPPX+94C, 115, Kirni Phatak, Gokulpura, तारा नगर मार्ग, Jhotwara, Jaipur, Rajasthan 302012, India</span>
+                  <span>G9, near D Mart, Jaipur, Rajasthan 302044, India</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
@@ -107,7 +107,7 @@ export default function App() {
           </div>
           
           <div className="border-t border-amber-800 mt-8 pt-6 text-center text-sm text-amber-200">
-            <p>&copy; 2026 G.S Sweets. All rights reserved.</p>
+            <p>&copy; 2026 Shri G S Sweets And Bakers. All rights reserved.</p>
           </div>
         </div>
       </footer>

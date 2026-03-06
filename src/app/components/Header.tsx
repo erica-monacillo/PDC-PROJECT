@@ -60,12 +60,12 @@ export function Header({ activeSection }: HeaderProps) {
               <span className={`text-xl font-bold transition-colors ${
                 isScrolled ? 'text-amber-900' : 'text-white drop-shadow-lg'
               }`}>
-                G.S Sweets
+                Shri G S Sweets And Bakers
               </span>
               <span className={`text-sm transition-colors ${
                 isScrolled ? 'text-amber-700' : 'text-amber-100 drop-shadow-lg'
               }`}>
-                जी.स स्वीट्स
+                श्री जी स स्वीट्स एंड बेकर्स
               </span>
             </button>
           </div>
