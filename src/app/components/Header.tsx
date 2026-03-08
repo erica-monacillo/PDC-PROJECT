@@ -58,12 +58,12 @@ export function Header({ activeSection }: HeaderProps) {
               className="flex flex-col leading-tight"
             >
               <span className={`text-xl font-bold transition-colors ${
-                isScrolled ? 'text-amber-900' : 'text-white drop-shadow-lg'
+                isScrolled ? 'text-gray-900' : 'text-white drop-shadow-lg'
               }`}>
                 Shri G S Sweets And Bakers
               </span>
               <span className={`text-sm transition-colors ${
-                isScrolled ? 'text-amber-700' : 'text-amber-100 drop-shadow-lg'
+                isScrolled ? 'text-gray-600' : 'text-gray-100 drop-shadow-lg'
               }`}>
                 श्री जी स स्वीट्स एंड बेकर्स
               </span>
@@ -79,10 +79,10 @@ export function Header({ activeSection }: HeaderProps) {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeSection === item.id
                     ? isScrolled
-                      ? 'bg-amber-100 text-amber-900'
+                      ? 'bg-gray-100 text-gray-900'
                       : 'bg-white/20 text-white backdrop-blur-sm'
                     : isScrolled
-                    ? 'text-gray-700 hover:bg-amber-50 hover:text-amber-900'
+                    ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                 }`}
               >
@@ -96,7 +96,7 @@ export function Header({ activeSection }: HeaderProps) {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`md:hidden p-2 rounded-lg transition-colors ${
               isScrolled
-                ? 'text-amber-900 hover:bg-amber-50'
+                ? 'text-gray-900 hover:bg-gray-100'
                 : 'text-white hover:bg-white/10'
             }`}
           >
@@ -118,8 +118,8 @@ export function Header({ activeSection }: HeaderProps) {
                   onClick={() => scrollToSection(item.id)}
                   className={`px-4 py-3 text-left text-sm font-medium transition-colors ${
                     activeSection === item.id
-                      ? 'bg-amber-100 text-amber-900'
-                      : 'text-gray-700 hover:bg-amber-50 hover:text-amber-900'
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
                   {item.label}

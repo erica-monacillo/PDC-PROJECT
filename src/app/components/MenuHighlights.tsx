@@ -56,7 +56,7 @@ export function MenuHighlights() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             Our Signature Items
           </h2>
           <p className="text-gray-600 text-lg">
@@ -69,7 +69,7 @@ export function MenuHighlights() {
           {menuItems.map((item) => (
             <div
               key={item.id}
-              className="group bg-gradient-to-br from-white to-amber-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-100 hover:border-amber-300 hover:-translate-y-1"
+              className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-gray-300 hover:-translate-y-1"
             >
               {/* Image */}
               <div className="relative h-56 overflow-hidden">
@@ -79,7 +79,7 @@ export function MenuHighlights() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 {item.popular && (
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                  <div className="absolute top-4 right-4 bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                     Popular
                   </div>
                 )}
@@ -87,20 +87,20 @@ export function MenuHighlights() {
 
               {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-bold text-amber-900 mb-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
                   {item.name}
                 </h3>
-                <p className="text-amber-700 text-sm mb-3">
+                <p className="text-gray-600 text-sm mb-3">
                   {item.nameHindi}
                 </p>
                 <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                   {item.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-amber-900">
+                  <span className="text-2xl font-bold text-gray-900">
                     {item.price}
                   </span>
-                  <button className="text-amber-600 hover:text-amber-800 font-semibold text-sm">
+                  <button className="text-gray-600 hover:text-gray-900 font-semibold text-sm">
                     Order Now
                   </button>
                 </div>
@@ -112,8 +112,8 @@ export function MenuHighlights() {
         {/* View Full Menu Button */}
         <div className="mt-12 text-center">
           <a
-            href="tel:+919672113819"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"
+            href="tel:+919829004353"
+            className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"
           >
             Call for Full Menu
             <ChevronRight className="w-5 h-5" />

@@ -48,11 +48,11 @@ const services = [
 
 export function ServiceCards() {
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-b from-white to-amber-50">
+    <section className="py-16 md:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             How We Serve You
           </h2>
           <p className="text-gray-600 text-lg">
@@ -67,7 +67,7 @@ export function ServiceCards() {
             return (
               <div
                 key={service.id}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-100 hover:border-amber-300 hover:-translate-y-1"
+                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-gray-300 hover:-translate-y-1"
               >
                 {/* Icon */}
                 <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${service.color} mb-6 group-hover:scale-110 transition-transform`}>
@@ -75,7 +75,7 @@ export function ServiceCards() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-amber-900 mb-3">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
                   {service.title}
                 </h3>
 
@@ -91,8 +91,8 @@ export function ServiceCards() {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a
-            href="tel:+919672113819"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"
+            href="tel:+919829004353"
+            className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"
           >
             Call to Order Now
           </a>

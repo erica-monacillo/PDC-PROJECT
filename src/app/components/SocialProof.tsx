@@ -31,7 +31,7 @@ export function SocialProof() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             What Our Customers Say
           </h2>
           <p className="text-gray-600 text-lg">
@@ -44,11 +44,11 @@ export function SocialProof() {
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-amber-100"
+              className="bg-gray-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
             >
               {/* Quote Icon */}
               <div className="mb-4">
-                <Quote className="w-10 h-10 text-amber-400 fill-amber-400" />
+                <Quote className="w-10 h-10 text-gray-400 fill-gray-400" />
               </div>
 
               {/* Rating */}
@@ -58,7 +58,7 @@ export function SocialProof() {
                     key={index}
                     className={`w-5 h-5 ${
                       index < review.rating
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-yellow-400 text-yellow-400'
                         : 'text-gray-300'
                     }`}
                   />
@@ -71,12 +71,12 @@ export function SocialProof() {
               </p>
 
               {/* Highlight Badge */}
-              <div className="inline-block bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+              <div className="inline-block bg-gray-200 text-gray-900 px-3 py-1 rounded-full text-xs font-semibold mb-3">
                 {review.highlight}
               </div>
 
               {/* Reviewer Name */}
-              <p className="font-semibold text-amber-900">
+              <p className="font-semibold text-gray-900">
                 — {review.name}
               </p>
             </div>
@@ -85,20 +85,20 @@ export function SocialProof() {
 
         {/* Trust Indicators */}
         <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="bg-amber-50 rounded-xl p-6 border border-amber-100">
-            <div className="text-3xl font-bold text-amber-900 mb-1">4.4★</div>
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">4.4★</div>
             <div className="text-sm text-gray-600">Average Rating</div>
           </div>
-          <div className="bg-amber-50 rounded-xl p-6 border border-amber-100">
-            <div className="text-3xl font-bold text-amber-900 mb-1">63+</div>
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">63+</div>
             <div className="text-sm text-gray-600">Happy Reviews</div>
           </div>
-          <div className="bg-amber-50 rounded-xl p-6 border border-amber-100">
-            <div className="text-3xl font-bold text-amber-900 mb-1">100%</div>
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
             <div className="text-sm text-gray-600">Pure Ingredients</div>
           </div>
-          <div className="bg-amber-50 rounded-xl p-6 border border-amber-100">
-            <div className="text-3xl font-bold text-amber-900 mb-1">5:45</div>
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">5:45</div>
             <div className="text-sm text-gray-600">AM Opening</div>
           </div>
         </div>

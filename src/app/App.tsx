@@ -37,7 +37,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FFF9F0]">
+    <div className="min-h-screen bg-white">
       <Header activeSection={activeSection} />
       
       <main>
@@ -68,31 +68,31 @@ export default function App() {
       <MobileBottomBar />
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-amber-900 to-red-900 text-amber-50 py-12">
+      <footer className="bg-white border-t border-gray-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-2xl mb-2">Shri G S Sweets And Bakers</h3>
-              <p className="text-xl mb-4">श्री जी स स्वीट्स एंड बेकर्स</p>
-              <p className="text-amber-200 text-sm">Authentic Taste of Jaipur</p>
+              <h3 className="text-2xl mb-2 text-gray-900">Shri G S Sweets And Bakers</h3>
+              <p className="text-xl mb-4 text-gray-700">श्री जी स स्वीट्स एंड बेकर्स</p>
+              <p className="text-gray-600 text-sm">Authentic Taste of Jaipur</p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-3">Quick Links</h4>
+              <h4 className="font-semibold mb-3 text-gray-900">Quick Links</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#overview" className="text-amber-200 hover:text-white transition-colors">Overview</a></li>
-                <li><a href="#menu" className="text-amber-200 hover:text-white transition-colors">Menu</a></li>
-                <li><a href="#about" className="text-amber-200 hover:text-white transition-colors">About</a></li>
-                <li><a href="#contact" className="text-amber-200 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#overview" className="text-gray-600 hover:text-gray-900 transition-colors">Overview</a></li>
+                <li><a href="#menu" className="text-gray-600 hover:text-gray-900 transition-colors">Menu</a></li>
+                <li><a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">About</a></li>
+                <li><a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors">Contact</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-3">Contact</h4>
-              <div className="space-y-2 text-sm text-amber-200">
+              <h4 className="font-semibold mb-3 text-gray-900">Contact</h4>
+              <div className="space-y-2 text-sm text-gray-600">
                 <p className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <a href="tel:+919829004353" className="hover:text-white transition-colors">+91 98290 04353</a>
+                  <a href="tel:+919829004353" className="hover:text-gray-900 transition-colors">+91 98290 04353</a>
                 </p>
                 <p className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -106,7 +106,7 @@ export default function App() {
             </div>
           </div>
           
-          <div className="border-t border-amber-800 mt-8 pt-6 text-center text-sm text-amber-200">
+          <div className="border-t border-gray-200 mt-8 pt-6 text-center text-sm text-gray-600">
             <p>&copy; 2026 Shri G S Sweets And Bakers. All rights reserved.</p>
           </div>
         </div>
