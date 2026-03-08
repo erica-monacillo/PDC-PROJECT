@@ -9,7 +9,7 @@ const menuItems = [
     nameHindi: 'इमरती जलेबी',
     description: 'Crispy, sweet, and freshly made every morning',
     price: '₹60/kg',
-    image: 'https://images.unsplash.com/photo-1760263216784-a4ca9a841ff5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBqYWxlYmklMjBzd2VldHMlMjBvcmFuZ2V8ZW58MXx8fHwxNzcyNTQ0MDc4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: 'images/Gulab-Jamun-Recipe-Piping-Pot-Curry.jpg',
     popular: true
   },
   {
@@ -76,7 +76,7 @@ export function MenuHighlights() {
                 <ImageWithFallback
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                 />
                 {item.popular && (
                   <div className="absolute top-4 right-4 bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
