@@ -32,10 +32,10 @@ export function Contact() {
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-1">Phone</h4>
                   <a 
-                    href="tel:+919829004353" 
+                    href="tel:+91234567890" 
                     className="text-gray-900 text-lg hover:text-gray-700 transition-colors"
                   >
-                    +91 98290 04353
+                    +91 12345 67890
                   </a>
                   <p className="text-gray-600 text-sm mt-1">Call anytime during business hours</p>
                 </div>
@@ -69,7 +69,7 @@ export function Contact() {
             {/* CTA Button */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <a
-                href="tel:+919829004353"
+                href="tel:+91234567890"
                 className="block w-full bg-gray-900 hover:bg-gray-800 text-white text-center px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all transform hover:scale-105"
               >
                 Call Now for Fresh Sweets
@@ -117,14 +117,14 @@ export function Contact() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="tel:+919829004353"
+              href="tel:+91234567890"
               className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
-              +91 98290 04353
+              +91 12345 67890
             </a>
             <a
-              href="https://wa.me/919829004353"
+              href="https://wa.me/91234567890"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"

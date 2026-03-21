@@ -91,7 +91,7 @@ export function ServiceCards() {
         {/* Call to Action */}
         <div className="mt-12 text-center">
           <a
-            href="tel:+919829004353"
+            href="tel:+91234567890"
             className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105"
           >
             Call to Order Now

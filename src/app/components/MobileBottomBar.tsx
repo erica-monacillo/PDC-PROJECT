@@ -7,7 +7,7 @@ export function MobileBottomBar() {
       <div className="grid grid-cols-3 gap-1 p-2">
         {/* Call Button */}
         <a
-          href="tel:+919829004353"
+          href="tel:+91234567890"
           className="flex flex-col items-center justify-center gap-1 bg-gray-900 text-white py-3 rounded-xl transition-all active:scale-95"
         >
           <Phone className="w-5 h-5" />
@@ -27,7 +27,7 @@ export function MobileBottomBar() {
 
         {/* WhatsApp Button */}
         <a
-          href="https://wa.me/919829004353"
+          href="https://wa.me/91234567890"
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-col items-center justify-center gap-1 bg-green-600 text-white py-3 rounded-xl transition-all active:scale-95"
