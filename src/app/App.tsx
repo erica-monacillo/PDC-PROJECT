@@ -92,7 +92,7 @@ export default function App() {
               <div className="space-y-2 text-sm text-gray-600">
                 <p className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <a href="tel:+919829004353" className="hover:text-gray-900 transition-colors">+91 98290 04353</a>
+                  <a href="tel:+91234567890" className="hover:text-gray-900 transition-colors">+91 23456 7890</a>
                 </p>
                 <p className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
