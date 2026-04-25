@@ -263,7 +263,7 @@ app.post('/api/orders', async (req, res) => {
 
 ```javascript
 // Real-time bidirectional communication
-const socket = io('http://localhost:3001');
+const socket = io('https://pdc-project.onrender.com');
 
 // Server → Clients: Broadcast updates
 socket.on('orders-updated', (orders) => {
