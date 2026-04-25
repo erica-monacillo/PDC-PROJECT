@@ -109,7 +109,7 @@ npm start                             # Terminal 1: Backend (from server/)
 npm run dev                           # Terminal 2: Frontend (from root)
 
 # Open browser
-http://localhost:5173                # Main site
+https://pdc-project.onrender.com                # Main site
 # Scroll to "Orders" section or click nav
 
 # Load test
