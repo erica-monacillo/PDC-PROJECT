@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/admin/orders', {
+      const response = await fetch('https://pdc-project.onrender.com/api/admin/orders', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

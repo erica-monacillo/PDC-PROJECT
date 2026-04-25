@@ -71,7 +71,7 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
 
     try {
       // First update customer info, then checkout
-      const response = await fetch('http://localhost:3001/api/orders', {
+      const response = await fetch('https://pdc-project.onrender.com/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

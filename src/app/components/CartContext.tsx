@@ -45,7 +45,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:3001/api/cart', {
+      const response = await fetch('https://pdc-project.onrender.com/api/cart', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -63,7 +63,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/cart/add', {
+      const response = await fetch('https://pdc-project.onrender.com/api/cart/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/cart/update', {
+      const response = await fetch('https://pdc-project.onrender.com/api/cart/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      await fetch('http://localhost:3001/api/cart', {
+      await fetch('https://pdc-project.onrender.com/api/cart', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -144,7 +144,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/orders', {
+      const response = await fetch('https://pdc-project.onrender.com/api/orders', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

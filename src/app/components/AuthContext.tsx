@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:3001/api/auth/login', {
+    const response = await fetch('https://pdc-project.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (email: string, password: string, name: string, role: 'admin' | 'customer' = 'customer') => {
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+    const response = await fetch('https://pdc-project.onrender.com/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name, role }),

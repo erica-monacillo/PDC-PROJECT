@@ -42,7 +42,7 @@ export function Orders() {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/orders', {
+      const response = await fetch('https://pdc-project.onrender.com/api/orders', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -61,7 +61,7 @@ export function Orders() {
 
   const cancelOrder = async (orderId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/orders/${orderId}/cancel`, {
+      const response = await fetch(`https://pdc-project.onrender.com/api/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
