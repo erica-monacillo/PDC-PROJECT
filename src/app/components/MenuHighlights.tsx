@@ -18,7 +18,7 @@ const menuItems = [
     nameHindi: 'बंगाली मिठाई',
     description: 'Authentic Bengali sweets, soft and delicious',
     price: '₹80/kg',
-    image: 'https://images.unsplash.com/photo-1684813114206-867e17b5b697?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtaXRoYWklMjBzd2VldHMlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NzI1NDQwNzl8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: 'https://www.cookwithmanali.com/wp-content/uploads/2016/05/Khasta-Kachori.jpg',
     popular: true
   },
   {
