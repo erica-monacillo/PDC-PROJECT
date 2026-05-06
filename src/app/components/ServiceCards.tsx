@@ -149,7 +149,9 @@ export function ServiceCards() {
         .luxury-section {
           position: relative;
           padding: 120px 24px;
-          background: #06050a;
+          background: rgba(251,191,36,0.08);
+          backdrop-filter: blur(40px) saturate(160%);
+          -webkit-backdrop-filter: blur(40px) saturate(160%);
           overflow: hidden;
           font-family: 'Josefin Sans', sans-serif;
           min-height: 100vh;
@@ -159,24 +161,24 @@ export function ServiceCards() {
         .bg-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(120px);
+          filter: blur(100px);
           pointer-events: none;
         }
         .bg-blob-1 {
           width: 700px; height: 700px;
           top: -200px; left: -200px;
-          background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(251,191,36,0.35) 0%, transparent 70%);
         }
         .bg-blob-2 {
           width: 600px; height: 600px;
           bottom: -150px; right: -150px;
-          background: radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(245,130,11,0.28) 0%, transparent 70%);
         }
         .bg-blob-3 {
           width: 500px; height: 500px;
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
-          background: radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(253,211,77,0.2) 0%, transparent 70%);
         }
 
         /* Noise texture overlay */
@@ -196,7 +198,7 @@ export function ServiceCards() {
           font-weight: 300;
           letter-spacing: 0.4em;
           text-transform: uppercase;
-          color: rgba(245,158,11,0.7);
+          color: rgba(146,64,14,0.75);
           text-align: center;
           margin-bottom: 20px;
         }
@@ -205,20 +207,20 @@ export function ServiceCards() {
           font-size: clamp(2.8rem, 6vw, 5rem);
           font-weight: 300;
           letter-spacing: -0.01em;
-          color: #faf8f4;
+          color: #3b2005;
           text-align: center;
           line-height: 1.1;
           margin-bottom: 16px;
         }
         .section-title em {
           font-style: italic;
-          color: rgba(245,158,11,0.85);
+          color: rgba(180,83,9,0.9);
         }
         .section-subtitle {
           font-size: 13px;
           font-weight: 200;
           letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.38);
+          color: rgba(59,32,5,0.45);
           text-align: center;
           max-width: 400px;
           margin: 0 auto 80px;
@@ -249,14 +251,14 @@ export function ServiceCards() {
           position: relative;
           padding: 36px 30px 32px;
           border-radius: 24px;
-          background: rgba(255,255,255,0.03);
+          background: rgba(255,237,180,0.35);
           backdrop-filter: blur(24px) saturate(160%);
           -webkit-backdrop-filter: blur(24px) saturate(160%);
-          border: 1px solid rgba(255,255,255,0.08);
+          border: 1px solid rgba(251,191,36,0.25);
           box-shadow:
-            0 0 0 0.5px rgba(255,255,255,0.04) inset,
-            0 20px 60px rgba(0,0,0,0.4),
-            0 1px 0 rgba(255,255,255,0.06) inset;
+            0 0 0 0.5px rgba(255,255,255,0.3) inset,
+            0 20px 60px rgba(146,64,14,0.12),
+            0 1px 0 rgba(255,255,255,0.4) inset;
           cursor: default;
           transition: transform 0.3s ease, box-shadow 0.4s ease;
           overflow: hidden;
@@ -284,7 +286,7 @@ export function ServiceCards() {
           position: absolute;
           top: 0; left: 20%; right: 20%;
           height: 1px;
-          opacity: 0.6;
+          opacity: 0.5;
         }
 
         .card-orb {
@@ -295,7 +297,7 @@ export function ServiceCards() {
           border-radius: 50%;
           filter: blur(30px);
           pointer-events: none;
-          opacity: 0.5;
+          opacity: 0.4;
         }
 
         .card-number {
@@ -304,7 +306,7 @@ export function ServiceCards() {
           font-size: 11px;
           font-weight: 300;
           letter-spacing: 0.3em;
-          color: rgba(255,255,255,0.12);
+          color: rgba(146,64,14,0.2);
           font-family: 'Josefin Sans', sans-serif;
         }
 
@@ -315,8 +317,8 @@ export function ServiceCards() {
           align-items: center;
           justify-content: center;
           border-radius: 16px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.35);
+          border: 1px solid rgba(251,191,36,0.3);
           margin-bottom: 28px;
           overflow: hidden;
           transition: transform 0.3s ease;
@@ -328,7 +330,7 @@ export function ServiceCards() {
           position: absolute;
           inset: 0;
           border-radius: inherit;
-          opacity: 0.6;
+          opacity: 0.5;
         }
 
         .card-title {
@@ -336,7 +338,7 @@ export function ServiceCards() {
           font-size: 1.55rem;
           font-weight: 400;
           letter-spacing: 0.01em;
-          color: #faf8f4;
+          color: #3b2005;
           margin: 0 0 12px;
           line-height: 1.2;
         }
@@ -345,7 +347,7 @@ export function ServiceCards() {
           font-size: 12.5px;
           font-weight: 200;
           letter-spacing: 0.05em;
-          color: rgba(255,255,255,0.42);
+          color: rgba(59,32,5,0.55);
           line-height: 1.85;
           margin: 0 0 28px;
         }
@@ -370,9 +372,9 @@ export function ServiceCards() {
           gap: 12px;
           padding: 16px 44px;
           border-radius: 100px;
-          background: rgba(245,158,11,0.08);
-          border: 1px solid rgba(245,158,11,0.3);
-          color: rgba(245,158,11,0.9);
+          background: rgba(180,83,9,0.1);
+          border: 1px solid rgba(180,83,9,0.3);
+          color: rgba(146,64,14,0.95);
           font-family: 'Josefin Sans', sans-serif;
           font-size: 11px;
           font-weight: 300;
@@ -388,16 +390,16 @@ export function ServiceCards() {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(245,158,11,0.06);
+          background: rgba(180,83,9,0.06);
           opacity: 0;
           transition: opacity 0.35s ease;
         }
         .cta-btn:hover {
-          background: rgba(245,158,11,0.14);
-          border-color: rgba(245,158,11,0.6);
-          box-shadow: 0 0 40px rgba(245,158,11,0.2), 0 0 80px rgba(245,158,11,0.06);
+          background: rgba(180,83,9,0.16);
+          border-color: rgba(180,83,9,0.55);
+          box-shadow: 0 0 40px rgba(180,83,9,0.15), 0 0 80px rgba(180,83,9,0.06);
           transform: translateY(-2px);
-          color: rgba(245,158,11,1);
+          color: rgba(120,53,15,1);
         }
         .cta-btn:hover::before { opacity: 1; }
         .cta-dot {
