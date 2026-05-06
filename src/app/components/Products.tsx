@@ -172,7 +172,10 @@ export function Products() {
                 Sign in to add items to your cart and place orders
               </p>
               <button
-                onClick={() => document.querySelector('[data-auth-trigger]')?.click()}
+                onClick={() => {
+                  const trigger = document.querySelector('[data-auth-trigger]') as HTMLElement | null;
+                  trigger?.click();
+                }}
                 className="bg-white text-amber-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
               >
                 Sign In Now

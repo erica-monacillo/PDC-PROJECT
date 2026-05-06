@@ -9,7 +9,7 @@ const menuItems = [
     nameHindi: 'इमरती जलेबी',
     description: 'Crispy, sweet, and freshly made every morning',
     price: '₹60/kg',
-    image: 'images/Gulab-Jamun-Recipe-Piping-Pot-Curry.jpg',
+    image: 'images/Gulab.jpg',
     popular: true
   },
   {
