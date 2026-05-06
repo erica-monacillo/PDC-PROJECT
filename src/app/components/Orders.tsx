@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingCart, Clock, CheckCircle, AlertCircle, Users, Loader, Package, Truck, CreditCard } from 'lucide-react';
+import {
+  X, Clock, CheckCircle, AlertCircle, Loader,
+  Package, Truck, ClipboardList, ShoppingBag,
+} from 'lucide-react';
 import { useAuth } from './AuthContext';
 
 interface OrderItem {
@@ -20,40 +23,50 @@ interface Order {
   updatedAt: string;
 }
 
+interface OrdersProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const statusConfig = {
-  pending: { icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-50', label: 'Pending' },
-  processing: { icon: Loader, color: 'text-blue-500', bg: 'bg-blue-50', label: 'Processing' },
-  completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50', label: 'Completed' },
-  cancelled: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50', label: 'Cancelled' },
+  pending:    { icon: Clock,        color: 'rgba(245,158,11,0.9)',  bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)',  label: 'Pending' },
+  processing: { icon: Loader,       color: 'rgba(99,179,237,0.9)',  bg: 'rgba(99,179,237,0.08)',  border: 'rgba(99,179,237,0.2)',  label: 'Processing' },
+  completed:  { icon: CheckCircle,  color: 'rgba(52,211,153,0.9)',  bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.2)',  label: 'Completed' },
+  cancelled:  { icon: AlertCircle,  color: 'rgba(239,68,68,0.9)',   bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',   label: 'Cancelled' },
 };
 
-export function Orders() {
+const categoryEmoji: Record<string, string> = {
+  cakes: '🍰', pastries: '🥐', traditional: '🪔',
+};
+
+export function Orders({ isOpen, onClose }: OrdersProps) {
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadOrders();
-    }
-  }, [isAuthenticated]);
+    if (isOpen && isAuthenticated) loadOrders();
+  }, [isOpen, isAuthenticated]);
+
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://pdc-project.onrender.com/api/orders', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const res = await fetch('https://pdc-project.onrender.com/api/orders', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-
-      if (response.ok) {
-        const data: Order[] = await response.json();
-        setOrders(data.sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      if (res.ok) {
+        const data: Order[] = await res.json();
+        setOrders(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       }
-    } catch (error) {
-      console.error('Error loading orders:', error);
+    } catch (err) {
+      console.error('Error loading orders:', err);
     } finally {
       setLoading(false);
     }
@@ -61,242 +74,477 @@ export function Orders() {
 
   const cancelOrder = async (orderId: string) => {
     try {
-      const response = await fetch(`https://pdc-project.onrender.com/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`https://pdc-project.onrender.com/api/orders/${orderId}/cancel`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-
-      if (response.ok) {
-        loadOrders(); // Reload orders
-      }
-    } catch (error) {
-      console.error('Error cancelling order:', error);
+      if (res.ok) loadOrders();
+    } catch (err) {
+      console.error('Error cancelling order:', err);
     }
   };
 
-  const filteredOrders = orders.filter((order: Order) => {
-    if (filter === 'all') return true;
-    return order.status === filter;
-  });
+  const filteredOrders = orders.filter(o => filter === 'all' || o.status === filter);
 
-  if (!isAuthenticated) {
-    return (
-      <div id="orders" className="py-16 bg-gradient-to-b from-amber-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Orders</h2>
-            <p className="text-xl text-gray-600 mb-8">Please sign in to view your orders</p>
-            <button
-              onClick={() => (document.querySelector('[data-auth-trigger]') as HTMLElement)?.click()}
-              className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition"
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const filterTabs = [
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'processing', label: 'Processing' },
+    { key: 'completed', label: 'Done' },
+    { key: 'cancelled', label: 'Cancelled' },
+  ];
 
   return (
-    <div id="orders" className="py-16 bg-gradient-to-b from-amber-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Josefin+Sans:wght@200;300;400&display=swap');
+
+        .ord-backdrop {
+          position: fixed; inset: 0; z-index: 60;
+          background: rgba(0,0,0,0);
+          backdrop-filter: blur(0px);
+          transition: background 0.4s ease, backdrop-filter 0.4s ease;
+          pointer-events: none;
+        }
+        .ord-backdrop.open {
+          background: rgba(0,0,0,0.55);
+          backdrop-filter: blur(6px);
+          pointer-events: all;
+        }
+
+        .ord-panel {
+          position: fixed; top: 0; right: 0; bottom: 0;
+          width: 100%; max-width: 480px;
+          z-index: 61;
+          display: flex; flex-direction: column;
+          background: rgba(6,5,10,0.82);
+          backdrop-filter: blur(32px) saturate(160%);
+          -webkit-backdrop-filter: blur(32px) saturate(160%);
+          border-left: 1px solid rgba(255,255,255,0.08);
+          box-shadow: -24px 0 80px rgba(0,0,0,0.6), inset 1px 0 0 rgba(255,255,255,0.04);
+          transform: translateX(100%);
+          transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
+        }
+        .ord-panel.open { transform: translateX(0); }
+
+        /* Top shimmer */
+        .ord-shimmer {
+          position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(245,158,11,0.45), transparent);
+          pointer-events: none;
+        }
+
+        /* Header */
+        .ord-header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 24px 24px 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          flex-shrink: 0;
+        }
+        .ord-header-left { display: flex; align-items: center; gap: 12px; }
+        .ord-header-icon {
+          width: 40px; height: 40px;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 12px;
+          background: rgba(245,158,11,0.1);
+          border: 1px solid rgba(245,158,11,0.2);
+          color: rgba(245,158,11,0.85);
+        }
+        .ord-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1.4rem; font-weight: 400;
+          color: #faf8f4; letter-spacing: 0.02em;
+        }
+        .ord-count {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 300;
+          letter-spacing: 0.2em; text-transform: uppercase;
+          color: rgba(255,255,255,0.3);
+          margin-top: 2px;
+        }
+        .ord-close {
+          width: 36px; height: 36px;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 10px; border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.03);
+          color: rgba(255,255,255,0.5);
+          cursor: pointer; transition: all 0.25s ease;
+        }
+        .ord-close:hover {
+          background: rgba(255,255,255,0.08);
+          color: #fff; border-color: rgba(255,255,255,0.14);
+        }
+
+        /* Filter tabs */
+        .ord-filters {
+          display: flex; gap: 6px;
+          padding: 16px 24px;
+          overflow-x: auto; flex-shrink: 0;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          scrollbar-width: none;
+        }
+        .ord-filters::-webkit-scrollbar { display: none; }
+        .ord-filter-btn {
+          flex-shrink: 0;
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 300;
+          letter-spacing: 0.2em; text-transform: uppercase;
+          padding: 7px 14px; border-radius: 100px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.07);
+          color: rgba(255,255,255,0.4);
+          cursor: pointer; transition: all 0.25s ease;
+          white-space: nowrap;
+        }
+        .ord-filter-btn:hover {
+          color: rgba(255,255,255,0.7);
+          background: rgba(255,255,255,0.07);
+        }
+        .ord-filter-btn.active {
+          background: rgba(245,158,11,0.1);
+          border-color: rgba(245,158,11,0.3);
+          color: rgba(245,158,11,0.9);
+        }
+
+        /* Scrollable body */
+        .ord-body {
+          flex: 1; overflow-y: auto; padding: 20px 24px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.08) transparent;
+        }
+        .ord-body::-webkit-scrollbar { width: 4px; }
+        .ord-body::-webkit-scrollbar-track { background: transparent; }
+        .ord-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+        /* Empty / loading states */
+        .ord-state {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          padding: 60px 24px; gap: 12px; text-align: center;
+        }
+        .ord-state-icon {
+          width: 56px; height: 56px;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.07);
+          color: rgba(255,255,255,0.2);
+          margin-bottom: 8px;
+        }
+        .ord-state-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1.2rem; color: rgba(255,255,255,0.7);
+        }
+        .ord-state-sub {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 11px; font-weight: 200; letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.28); line-height: 1.7;
+        }
+        .ord-state-btn {
+          margin-top: 8px;
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase;
+          padding: 11px 24px; border-radius: 100px;
+          background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+          color: rgba(245,158,11,0.9); cursor: pointer; transition: all 0.25s ease;
+        }
+        .ord-state-btn:hover {
+          background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.5);
+        }
+
+        /* Order card */
+        .ord-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 18px; padding: 20px;
+          margin-bottom: 14px;
+          transition: border-color 0.25s ease;
+        }
+        .ord-card:hover { border-color: rgba(255,255,255,0.12); }
+
+        .ord-card-top {
+          display: flex; align-items: flex-start;
+          justify-content: space-between; gap: 12px;
+          margin-bottom: 16px;
+        }
+        .ord-card-left { display: flex; align-items: center; gap: 12px; }
+        .ord-status-dot {
+          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .ord-id {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1rem; font-weight: 400; color: #faf8f4;
+        }
+        .ord-date {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 200; letter-spacing: 0.08em;
+          color: rgba(255,255,255,0.3); margin-top: 2px;
+        }
+        .ord-card-right { text-align: right; flex-shrink: 0; }
+        .ord-total {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1.3rem; color: rgba(245,158,11,0.9);
+        }
+        .ord-item-count {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 200; letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.28); margin-top: 2px;
+        }
+        .ord-status-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase;
+          padding: 4px 10px; border-radius: 100px;
+        }
+        .ord-status-pill-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+
+        /* Items list */
+        .ord-items {
+          border-top: 1px solid rgba(255,255,255,0.05);
+          padding-top: 14px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .ord-item {
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .ord-item-left { display: flex; align-items: center; gap: 10px; }
+        .ord-item-emoji {
+          width: 32px; height: 32px; border-radius: 8px;
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+          display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .ord-item-name {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.75);
+        }
+        .ord-item-qty {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 200; letter-spacing: 0.08em; color: rgba(255,255,255,0.3);
+          margin-top: 1px;
+        }
+        .ord-item-price {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);
+        }
+
+        /* Card footer */
+        .ord-card-footer {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-top: 14px; padding-top: 14px;
+          border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .ord-delivery-note {
+          display: flex; align-items: center; gap: 6px;
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 200; letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.3);
+        }
+        .ord-cancel-btn {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase;
+          padding: 7px 14px; border-radius: 100px;
+          background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+          color: rgba(239,68,68,0.8); cursor: pointer; transition: all 0.25s ease;
+        }
+        .ord-cancel-btn:hover {
+          background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4);
+        }
+
+        /* Admin stats */
+        .ord-admin {
+          margin-top: 8px; padding: 20px;
+          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 18px;
+        }
+        .ord-admin-title {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 10px; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase;
+          color: rgba(245,158,11,0.6); margin-bottom: 16px;
+        }
+        .ord-admin-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+        .ord-admin-stat { text-align: center; }
+        .ord-admin-num {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1.4rem; font-weight: 400;
+        }
+        .ord-admin-label {
+          font-family: 'Josefin Sans', sans-serif;
+          font-size: 9px; font-weight: 200; letter-spacing: 0.15em; text-transform: uppercase;
+          color: rgba(255,255,255,0.3); margin-top: 2px;
+        }
+      `}</style>
+
+      {/* Backdrop */}
+      <div className={`ord-backdrop${isOpen ? ' open' : ''}`} onClick={onClose} />
+
+      {/* Slide panel */}
+      <div className={`ord-panel${isOpen ? ' open' : ''}`}>
+        <div className="ord-shimmer" />
+
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Your Orders</h2>
-          <p className="text-xl text-gray-600">
-            Track your sweet orders and order history
-          </p>
+        <div className="ord-header">
+          <div className="ord-header-left">
+            <div className="ord-header-icon"><ClipboardList size={18} /></div>
+            <div>
+              <div className="ord-title">My Orders</div>
+              <div className="ord-count">{orders.length} order{orders.length !== 1 ? 's' : ''} total</div>
+            </div>
+          </div>
+          <button className="ord-close" onClick={onClose}><X size={16} /></button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {[
-            { key: 'all', label: 'All Orders' },
-            { key: 'pending', label: 'Pending' },
-            { key: 'processing', label: 'Processing' },
-            { key: 'completed', label: 'Completed' },
-            { key: 'cancelled', label: 'Cancelled' },
-          ].map((status) => (
+        {/* Filter tabs */}
+        <div className="ord-filters">
+          {filterTabs.map(tab => (
             <button
-              key={status.key}
-              onClick={() => setFilter(status.key)}
-              className={`px-6 py-2 rounded-full font-semibold transition ${
-                filter === status.key
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              key={tab.key}
+              className={`ord-filter-btn${filter === tab.key ? ' active' : ''}`}
+              onClick={() => setFilter(tab.key)}
             >
-              {status.label}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Orders List */}
-        {loading ? (
-          <div className="text-center py-12">
-            <Loader className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading your orders...</p>
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
-            <p className="text-gray-600 mb-6">
-              {filter === 'all' ? "You haven't placed any orders yet" : `No ${filter} orders found`}
-            </p>
-            <button
-              onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition"
-            >
-              Browse Products
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {filteredOrders.map((order: Order) => {
-              const StatusIcon = statusConfig[order.status]?.icon || Clock;
-              const statusColor = statusConfig[order.status]?.color || 'text-gray-500';
-              const statusBg = statusConfig[order.status]?.bg || 'bg-gray-50';
-              const statusLabel = statusConfig[order.status]?.label || order.status;
-
-              return (
-                <div key={order.id} className="bg-white rounded-xl shadow-md p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
-                    <div className="flex items-center gap-4 mb-4 lg:mb-0">
-                      <div className={`p-3 rounded-full ${statusBg}`}>
-                        <StatusIcon className={`w-6 h-6 ${statusColor}`} />
+        {/* Body */}
+        <div className="ord-body">
+          {!isAuthenticated ? (
+            <div className="ord-state">
+              <div className="ord-state-icon"><ShoppingBag size={22} /></div>
+              <div className="ord-state-title">Sign in to view orders</div>
+              <div className="ord-state-sub">Your order history will appear<br />once you're signed in.</div>
+              <button className="ord-state-btn" onClick={onClose}>Sign In</button>
+            </div>
+          ) : loading ? (
+            <div className="ord-state">
+              <div className="ord-state-icon">
+                <Loader size={22} style={{ animation: 'spin 1s linear infinite' }} />
+              </div>
+              <div className="ord-state-title">Loading orders…</div>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="ord-state">
+              <div className="ord-state-icon"><Package size={22} /></div>
+              <div className="ord-state-title">No orders found</div>
+              <div className="ord-state-sub">
+                {filter === 'all'
+                  ? "You haven't placed any orders yet."
+                  : `No ${filter} orders to show.`}
+              </div>
+              {filter !== 'all' && (
+                <button className="ord-state-btn" onClick={() => setFilter('all')}>View All</button>
+              )}
+            </div>
+          ) : (
+            <>
+              {filteredOrders.map(order => {
+                const cfg = statusConfig[order.status] ?? statusConfig.pending;
+                const StatusIcon = cfg.icon;
+                return (
+                  <div key={order.id} className="ord-card">
+                    {/* Top row */}
+                    <div className="ord-card-top">
+                      <div className="ord-card-left">
+                        <div
+                          className="ord-status-dot"
+                          style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
+                        >
+                          <StatusIcon size={16} />
+                        </div>
+                        <div>
+                          <div className="ord-id">#{order.id.slice(-8).toUpperCase()}</div>
+                          <div className="ord-date">
+                            {new Date(order.createdAt).toLocaleDateString()} · {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          Order #{order.id.slice(-8)}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {new Date(order.createdAt).toLocaleDateString()} at{' '}
-                          {new Date(order.createdAt).toLocaleTimeString()}
-                        </p>
+                      <div className="ord-card-right">
+                        <div className="ord-total">₹{order.totalPrice?.toFixed(2) ?? '0.00'}</div>
+                        <div className="ord-item-count">{order.items?.length ?? 0} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className={`px-3 py-1 rounded-full text-sm font-semibold ${statusBg} ${statusColor}`}>
-                        {statusLabel}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-amber-600">
-                          ${order.totalPrice?.toFixed(2) || '0.00'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {order.items?.length || 0} items
-                        </p>
-                      </div>
+                    {/* Status pill */}
+                    <div style={{ marginBottom: 14 }}>
+                      <span
+                        className="ord-status-pill"
+                        style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
+                      >
+                        <span className="ord-status-pill-dot" />
+                        {cfg.label}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Order Items */}
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="grid gap-3">
-                      {order.items?.map((item: OrderItem, index: number) => (
-                        <div key={index} className="flex justify-between items-center py-2">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">
-                              {item.category === 'cakes' ? '🍰' :
-                               item.category === 'pastries' ? '🥐' :
-                               item.category === 'traditional' ? '🪔' : '🍬'}
-                            </span>
+                    {/* Items */}
+                    <div className="ord-items">
+                      {order.items?.map((item, i) => (
+                        <div key={i} className="ord-item">
+                          <div className="ord-item-left">
+                            <div className="ord-item-emoji">
+                              {categoryEmoji[item.category] ?? '🍬'}
+                            </div>
                             <div>
-                              <p className="font-semibold text-gray-900">{item.name}</p>
-                              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                              <div className="ord-item-name">{item.name}</div>
+                              <div className="ord-item-qty">Qty: {item.quantity}</div>
                             </div>
                           </div>
-                          <p className="font-semibold text-gray-900">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </p>
+                          <div className="ord-item-price">₹{(item.price * item.quantity).toFixed(2)}</div>
                         </div>
-                      )) || (
-                        <p className="text-gray-600">No items in this order</p>
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="ord-card-footer">
+                      <div className="ord-delivery-note">
+                        {order.status === 'pending' && <><Clock size={12} /> Processing soon</>}
+                        {order.status === 'processing' && <><Truck size={12} /> Out for delivery</>}
+                        {order.status === 'completed' && <><CheckCircle size={12} /> Delivered</>}
+                        {order.status === 'cancelled' && <><AlertCircle size={12} /> Cancelled</>}
+                      </div>
+                      {order.status === 'pending' && (
+                        <button className="ord-cancel-btn" onClick={() => cancelOrder(order.id)}>
+                          Cancel
+                        </button>
                       )}
                     </div>
                   </div>
+                );
+              })}
 
-                  {/* Order Actions */}
-                  <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {order.status === 'pending' && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            <span>Processing soon</span>
-                          </div>
-                        </>
-                      )}
-                      {order.status === 'processing' && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <Truck className="w-4 h-4" />
-                            <span>Out for delivery</span>
-                          </div>
-                        </>
-                      )}
-                      {order.status === 'completed' && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Delivered successfully</span>
-                          </div>
-                        </>
-                      )}
+              {/* Admin stats */}
+              {isAdmin && (
+                <div className="ord-admin">
+                  <div className="ord-admin-title">Admin Overview</div>
+                  <div className="ord-admin-grid">
+                    <div className="ord-admin-stat">
+                      <div className="ord-admin-num" style={{ color: 'rgba(245,158,11,0.9)' }}>{orders.length}</div>
+                      <div className="ord-admin-label">Total</div>
                     </div>
-
-                    {order.status === 'pending' && (
-                      <button
-                        onClick={() => cancelOrder(order.id)}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
-                      >
-                        Cancel Order
-                      </button>
-                    )}
+                    <div className="ord-admin-stat">
+                      <div className="ord-admin-num" style={{ color: 'rgba(52,211,153,0.9)' }}>
+                        {orders.filter(o => o.status === 'completed').length}
+                      </div>
+                      <div className="ord-admin-label">Done</div>
+                    </div>
+                    <div className="ord-admin-stat">
+                      <div className="ord-admin-num" style={{ color: 'rgba(99,179,237,0.9)' }}>
+                        {orders.filter(o => o.status === 'processing').length}
+                      </div>
+                      <div className="ord-admin-label">Active</div>
+                    </div>
+                    <div className="ord-admin-stat">
+                      <div className="ord-admin-num" style={{ color: 'rgba(239,68,68,0.9)' }}>
+                        {orders.filter(o => o.status === 'cancelled').length}
+                      </div>
+                      <div className="ord-admin-label">Cancelled</div>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Admin Stats (if admin) */}
-        {isAdmin && (
-          <div className="mt-12 bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Admin Statistics</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-600">{orders.length}</p>
-                <p className="text-sm text-gray-600">Total Orders</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  {orders.filter((o: Order) => o.status === 'completed').length}
-                </p>
-                <p className="text-sm text-gray-600">Completed</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  {orders.filter((o: Order) => o.status === 'processing').length}
-                </p>
-                <p className="text-sm text-gray-600">Processing</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-red-600">
-                  {orders.filter((o: Order) => o.status === 'cancelled').length}
-                </p>
-                <p className="text-sm text-gray-600">Cancelled</p>
-              </div>
-            </div>
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
