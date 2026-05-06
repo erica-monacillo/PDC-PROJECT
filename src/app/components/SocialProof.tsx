@@ -50,7 +50,9 @@ export function SocialProof() {
         .rev-section {
           position: relative;
           padding: 120px 24px;
-          background: #f5ede0;
+          background: rgba(251,191,36,0.08);
+          backdrop-filter: blur(40px) saturate(160%);
+          -webkit-backdrop-filter: blur(40px) saturate(160%);
           overflow: hidden;
           font-family: 'Lora', serif;
         }
@@ -62,11 +64,11 @@ export function SocialProof() {
         }
         .rev-blob-1 {
           width: 500px; height: 500px; top: -180px; left: -180px;
-          background: radial-gradient(circle, rgba(210,140,60,0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(251,191,36,0.35) 0%, transparent 70%);
         }
         .rev-blob-2 {
           width: 500px; height: 500px; bottom: -150px; right: -150px;
-          background: radial-gradient(circle, rgba(180,100,80,0.25) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(245,130,11,0.28) 0%, transparent 70%);
         }
         .rev-noise {
           position: absolute; inset: 0; opacity: 0.04; pointer-events: none;
