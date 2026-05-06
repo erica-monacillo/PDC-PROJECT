@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { Cart } from './Cart';
+import { Orders } from './Orders';
 
 interface HeaderProps {
   activeSection: string;
@@ -16,6 +17,7 @@ export function Header({ activeSection }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -483,7 +485,7 @@ export function Header({ activeSection }: HeaderProps) {
               {/* Orders */}
               <button
                 className="lux-icon-btn"
-                onClick={() => scrollToSection('orders')}
+                onClick={() => setIsOrdersOpen(true)}
                 aria-label="Orders"
                 title="My Orders"
               >
@@ -579,6 +581,7 @@ export function Header({ activeSection }: HeaderProps) {
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Orders isOpen={isOrdersOpen} onClose={() => setIsOrdersOpen(false)} />
     </>
   );
 }
