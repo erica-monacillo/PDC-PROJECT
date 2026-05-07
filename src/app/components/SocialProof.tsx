@@ -50,7 +50,9 @@ export function SocialProof() {
         .rev-section {
           position: relative;
           padding: 120px 24px;
-          background: #f5ede0;
+          background: rgba(251,191,36,0.08);
+          backdrop-filter: blur(40px) saturate(160%);
+          -webkit-backdrop-filter: blur(40px) saturate(160%);
           overflow: hidden;
           font-family: 'Lora', serif;
         }
@@ -62,11 +64,11 @@ export function SocialProof() {
         }
         .rev-blob-1 {
           width: 500px; height: 500px; top: -180px; left: -180px;
-          background: radial-gradient(circle, rgba(210,140,60,0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(251,191,36,0.35) 0%, transparent 70%);
         }
         .rev-blob-2 {
           width: 500px; height: 500px; bottom: -150px; right: -150px;
-          background: radial-gradient(circle, rgba(180,100,80,0.25) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(245,130,11,0.28) 0%, transparent 70%);
         }
         .rev-noise {
           position: absolute; inset: 0; opacity: 0.04; pointer-events: none;
@@ -95,7 +97,7 @@ export function SocialProof() {
         .rev-subtitle {
           font-family: 'Lora', serif;
           font-size: 13px; font-weight: 400; font-style: italic;
-          color: rgba(59,42,26,0.45); text-align: center;
+          color: rgba(59,42,26,0.58); text-align: center;
           letter-spacing: 0.02em;
           margin-bottom: 72px;
         }
@@ -147,7 +149,7 @@ export function SocialProof() {
         .rev-text {
           font-family: 'Lora', serif;
           font-size: 0.95rem; font-weight: 400; font-style: italic;
-          color: rgba(59,42,26,0.72); line-height: 1.85;
+          color: rgba(59,42,26,0.78); line-height: 1.85;
           margin-bottom: 20px;
         }
 
@@ -170,8 +172,8 @@ export function SocialProof() {
         /* Reviewer */
         .rev-name {
           font-family: 'Lora', serif;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
-          color: rgba(59,42,26,0.5);
+          font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+          color: rgba(59,42,26,0.65);
         }
 
         /* Stats row */
@@ -212,7 +214,7 @@ export function SocialProof() {
 
         <div style={{ position: 'relative' }}>
           {/* Header */}
-          <p className="rev-eyebrow">Customer Stories</p>
+          <p className="rev-eyebrow"></p>
           <h2 className="rev-title">What Our <em>Customers</em> Say</h2>
           <div className="rev-divider" />
           <p className="rev-subtitle">Trusted by families across Jaipur</p>
