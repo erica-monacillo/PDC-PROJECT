@@ -26,6 +26,37 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 app.use(cors());
 app.use(express.json());
 
+// Homepage
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>PDC-PROJECT API</title>
+      <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        .status { background: #4CAF50; color: white; padding: 10px; border-radius: 5px; }
+        .endpoint { background: white; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #4CAF50; }
+        .method { font-weight: bold; color: #4CAF50; }
+      </style>
+    </head>
+    <body>
+      <h1> PDC-PROJECT API</h1>
+      <div class="status"> Server is running</div>
+      <h2> API Endpoints</h2>
+      <div class="endpoint"><span class="method">POST</span> /api/auth/register</div>
+      <div class="endpoint"><span class="method">POST</span> /api/auth/login</div>
+      <div class="endpoint"><span class="method">GET</span> /api/products</div>
+      <div class="endpoint"><span class="method">GET</span> /api/cart</div>
+      <div class="endpoint"><span class="method">POST</span> /api/orders</div>
+      <div class="endpoint"><span class="method">GET</span> /api/orders</div>
+      <p> Uptime: ${Math.floor(process.uptime())} seconds</p>
+    </body>
+    </html>
+  `);
+});
+
 // ============ DATABASE INITIALIZATION ============
 async function initializeApp() {
   try {
