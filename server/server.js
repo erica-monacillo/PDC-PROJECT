@@ -5,6 +5,10 @@ import { createServer } from 'http';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { initializeDatabaseSystem } from './database-factory.js';
+
+// Database modules (initialized later)
+let db, userModel, productModel, orderModel, cartModel, testConnection, initializeDatabase;
 
 const app = express();
 const httpServer = createServer(app);
@@ -16,25 +20,49 @@ const io = new Server(httpServer, {
 });
 
 // JWT Secret (in production, use environment variable)
-const JWT_SECRET = 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// ============ IN-MEMORY DATA STORE ============
-// This demonstrates shared data that all concurrent users access
-const store = {
-  users: new Map(), // userId -> user object
-  sessions: new Map(), // sessionId -> userId
-  carts: new Map(), // userId -> cart object
-  orders: new Map(), // orderId -> order object
-  products: new Map(), // productId -> product object
-  nextOrderId: 1000,
-  nextUserId: 1,
-  nextProductId: 1,
-  processingQueue: [], // Queue for background worker to process
-};
+// ============ DATABASE INITIALIZATION ============
+async function initializeApp() {
+  try {
+    // Initialize database system
+    const dbSystem = await initializeDatabaseSystem();
+    db = dbSystem.db;
+    userModel = dbSystem.userModel;
+    productModel = dbSystem.productModel;
+    orderModel = dbSystem.orderModel;
+    cartModel = dbSystem.cartModel;
+    testConnection = dbSystem.testConnection;
+    initializeDatabase = dbSystem.initializeDatabase;
+
+    console.log('Database system initialized:', {
+      hasProductModel: !!productModel,
+      productModelKeys: productModel ? Object.keys(productModel) : 'undefined'
+    });
+
+    // Test database connection
+    const connected = await testConnection();
+    if (!connected) {
+      console.error('Failed to connect to database. Please check your configuration.');
+      process.exit(1);
+    }
+
+    // Initialize database schema
+    await initializeDatabase();
+
+    // Initialize products if they don't exist
+    await initializeProducts();
+
+    console.log('✅ Application initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize application:', error);
+    process.exit(1);
+  }
+}
 
 // ============ INITIAL PRODUCTS ============
 const initialProducts = [
@@ -48,8 +76,17 @@ const initialProducts = [
   { id: 'prod-8', name: 'Ladoo Pack', price: 11.99, description: 'Traditional Indian sweets in various flavors', category: 'traditional', image: '/images/ladoo.jpg', stock: 14 },
 ];
 
-// Initialize products
-initialProducts.forEach(product => store.products.set(product.id, product));
+// Initialize products in database
+async function initializeProducts() {
+  const existingProducts = await productModel.getAllProducts();
+  if (existingProducts.length === 0) {
+    console.log('📦 Initializing products...');
+    for (const product of initialProducts) {
+      await productModel.createProduct(product);
+    }
+    console.log('✅ Products initialized');
+  }
+}
 
 // ============ AUTHENTICATION MIDDLEWARE ============
 const authenticateToken = (req, res, next) => {
@@ -84,414 +121,520 @@ const requireRole = (role) => {
 app.post('/api/auth/register', async (req, res) => {
   const { email, password, name, role = 'customer' } = req.body;
 
-  // Check if user already exists
-  const existingUser = Array.from(store.users.values()).find(u => u.email === email);
-  if (existingUser) {
-    return res.status(400).json({ error: 'User already exists' });
+  try {
+    // Check if user already exists
+    const existingUser = await userModel.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Get next user ID
+    const userId = await userModel.getNextUserId();
+
+    // Create user
+    const user = await userModel.createUser({
+      id: userId,
+      email,
+      name,
+      password: hashedPassword,
+      role
+    });
+
+    // Create cart for user
+    await cartModel.createCart(userId);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: userId, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      user: { id: userId, email, name, role },
+      token
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Create user
-  const userId = `user-${store.nextUserId++}`;
-  const user = {
-    id: userId,
-    email,
-    name,
-    role,
-    password: hashedPassword,
-    createdAt: new Date().toISOString(),
-    cart: { items: [], total: 0 },
-  };
-
-  store.users.set(userId, user);
-  store.carts.set(userId, { items: [], total: 0 });
-
-  // Generate JWT token
-  const token = jwt.sign(
-    { id: userId, email: user.email, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-
-  res.json({
-    user: { id: userId, email, name, role },
-    token
-  });
 });
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
-  const user = Array.from(store.users.values()).find(u => u.email === email);
-  if (!user) {
-    return res.status(400).json({ error: 'User not found' });
+  try {
+    const user = await userModel.getUserByEmail(email);
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      token
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) {
-    return res.status(400).json({ error: 'Invalid password' });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-
-  res.json({
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    token
-  });
 });
 
 // Get current user profile
-app.get('/api/auth/profile', authenticateToken, (req, res) => {
-  const user = store.users.get(req.user.id);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+  try {
+    const user = await userModel.getUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-  res.json({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    createdAt: user.createdAt
-  });
+    res.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      createdAt: user.created_at
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // ============ PRODUCT ENDPOINTS ============
 
 // Get all products
-app.get('/api/products', (req, res) => {
-  const products = Array.from(store.products.values());
-  res.json(products);
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await productModel.getAllProducts();
+    res.json(products);
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Get single product
-app.get('/api/products/:productId', (req, res) => {
-  const product = store.products.get(req.params.productId);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
+app.get('/api/products/:productId', async (req, res) => {
+  try {
+    const product = await productModel.getProductById(req.params.productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Get product error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  res.json(product);
 });
 
 // Update product (admin only)
-app.put('/api/products/:productId', authenticateToken, requireRole('admin'), (req, res) => {
-  const product = store.products.get(req.params.productId);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
+app.put('/api/products/:productId', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const product = await productModel.getProductById(req.params.productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const { name, price, description, stock, category } = req.body;
+    const updatedProduct = await productModel.updateProduct(req.params.productId, {
+      name: name || product.name,
+      price: price || product.price,
+      description: description || product.description,
+      stock: stock !== undefined ? stock : product.stock,
+      category: category || product.category,
+      image: product.image
+    });
+
+    broadcastProducts();
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Update product error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const { name, price, description, stock, category } = req.body;
-  const updatedProduct = {
-    ...product,
-    name: name || product.name,
-    price: price || product.price,
-    description: description || product.description,
-    stock: stock !== undefined ? stock : product.stock,
-    category: category || product.category,
-  };
-
-  store.products.set(req.params.productId, updatedProduct);
-  broadcastProducts();
-
-  res.json(updatedProduct);
 });
 
 // ============ CART ENDPOINTS ============
 
 // Get user's cart
-app.get('/api/cart', authenticateToken, (req, res) => {
-  const cart = store.carts.get(req.user.id) || { items: [], total: 0 };
-  res.json(cart);
+app.get('/api/cart', authenticateToken, async (req, res) => {
+  try {
+    const cart = await cartModel.getCartByUserId(req.user.id);
+    res.json(cart);
+  } catch (error) {
+    console.error('Get cart error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Add item to cart
-app.post('/api/cart/add', authenticateToken, (req, res) => {
-  const { productId, quantity = 1 } = req.body;
-  const userId = req.user.id;
+app.post('/api/cart/add', authenticateToken, async (req, res) => {
+  try {
+    const { productId, quantity = 1 } = req.body;
+    const userId = req.user.id;
 
-  const product = store.products.get(productId);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
+    const product = await productModel.getProductById(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    if (product.stock < quantity) {
+      return res.status(400).json({ error: 'Insufficient stock' });
+    }
+
+    let cart = await cartModel.getCartByUserId(userId);
+
+    // Check if item already in cart
+    const existingItem = cart.items.find(item => item.productId === productId);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      cart.items.push({
+        productId,
+        name: product.name,
+        price: product.price,
+        quantity,
+        image: product.image,
+      });
+    }
+
+    // Recalculate total
+    cart.total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    await cartModel.updateCart(userId, cart.items, cart.total);
+    broadcastCartUpdate(userId);
+
+    res.json(cart);
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  if (product.stock < quantity) {
-    return res.status(400).json({ error: 'Insufficient stock' });
-  }
-
-  let cart = store.carts.get(userId) || { items: [], total: 0 };
-
-  // Check if item already in cart
-  const existingItem = cart.items.find(item => item.productId === productId);
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    cart.items.push({
-      productId,
-      name: product.name,
-      price: product.price,
-      quantity,
-      image: product.image,
-    });
-  }
-
-  // Recalculate total
-  cart.total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  store.carts.set(userId, cart);
-  broadcastCartUpdate(userId);
-
-  res.json(cart);
 });
 
 // Update cart item quantity
-app.put('/api/cart/update', authenticateToken, (req, res) => {
-  const { productId, quantity } = req.body;
-  const userId = req.user.id;
+app.put('/api/cart/update', authenticateToken, async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    const userId = req.user.id;
 
-  let cart = store.carts.get(userId) || { items: [], total: 0 };
+    let cart = await cartModel.getCartByUserId(userId);
 
-  const itemIndex = cart.items.findIndex(item => item.productId === productId);
-  if (itemIndex === -1) {
-    return res.status(404).json({ error: 'Item not in cart' });
+    const itemIndex = cart.items.findIndex(item => item.productId === productId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Item not in cart' });
+    }
+
+    if (quantity <= 0) {
+      cart.items.splice(itemIndex, 1);
+    } else {
+      cart.items[itemIndex].quantity = quantity;
+    }
+
+    cart.total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    await cartModel.updateCart(userId, cart.items, cart.total);
+    broadcastCartUpdate(userId);
+
+    res.json(cart);
+  } catch (error) {
+    console.error('Update cart error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  if (quantity <= 0) {
-    cart.items.splice(itemIndex, 1);
-  } else {
-    cart.items[itemIndex].quantity = quantity;
-  }
-
-  cart.total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  store.carts.set(userId, cart);
-  broadcastCartUpdate(userId);
-
-  res.json(cart);
 });
 
 // Clear cart
-app.delete('/api/cart', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  store.carts.set(userId, { items: [], total: 0 });
-  broadcastCartUpdate(userId);
-  res.json({ success: true });
+app.delete('/api/cart', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await cartModel.clearCart(userId);
+    broadcastCartUpdate(userId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Clear cart error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // ============ ORDER ENDPOINTS ============
 
 // Get all orders (admin) or user's orders (customer)
-app.get('/api/orders', authenticateToken, (req, res) => {
-  let orders;
-  if (req.user.role === 'admin') {
-    orders = Array.from(store.orders.values());
-  } else {
-    orders = Array.from(store.orders.values()).filter(order => order.userId === req.user.id);
+app.get('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    let orders;
+    if (req.user.role === 'admin') {
+      orders = await orderModel.getAllOrders();
+    } else {
+      orders = await orderModel.getOrdersByUserId(req.user.id);
+    }
+    res.json(orders);
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  res.json(orders);
 });
 
 // Create order from cart
-app.post('/api/orders', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const { customerInfo } = req.body;
-  const cart = store.carts.get(userId);
+app.post('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { customerInfo } = req.body;
+    const cart = await cartModel.getCartByUserId(userId);
 
-  if (!cart || cart.items.length === 0) {
-    return res.status(400).json({ error: 'Cart is empty' });
-  }
-
-  if (!customerInfo) {
-    return res.status(400).json({ error: 'Customer information is required' });
-  }
-
-  // Validate required customer fields
-  const requiredFields = ['name', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
-  for (const field of requiredFields) {
-    if (!customerInfo[field] || !customerInfo[field].trim()) {
-      return res.status(400).json({ error: `${field} is required` });
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ error: 'Cart is empty' });
     }
-  }
 
-  // Check stock availability
-  for (const item of cart.items) {
-    const product = store.products.get(item.productId);
-    if (!product || product.stock < item.quantity) {
-      return res.status(400).json({ error: `Insufficient stock for ${item.name}` });
+    if (!customerInfo) {
+      return res.status(400).json({ error: 'Customer information is required' });
     }
+
+    // Validate required customer fields
+    const requiredFields = ['name', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
+    for (const field of requiredFields) {
+      if (!customerInfo[field] || !customerInfo[field].trim()) {
+        return res.status(400).json({ error: `${field} is required` });
+      }
+    }
+
+    // Check stock availability
+    for (const item of cart.items) {
+      const product = await productModel.getProductById(item.productId);
+      if (!product || product.stock < item.quantity) {
+        return res.status(400).json({ error: `Insufficient stock for ${item.name}` });
+      }
+    }
+
+    // Use transaction to ensure data consistency
+    const result = await db.transaction(async (client) => {
+      // Reduce stock
+      for (const item of cart.items) {
+        const product = await productModel.getProductById(item.productId);
+        await productModel.updateProductStock(item.productId, product.stock - item.quantity);
+      }
+
+      // Get next order ID
+      const orderId = await orderModel.getNextOrderId();
+
+      // Create order
+      const order = await orderModel.createOrder({
+        id: orderId,
+        userId,
+        customerInfo,
+        items: cart.items,
+        totalPrice: cart.total,
+        status: 'pending'
+      });
+
+      // Clear cart
+      await cartModel.clearCart(userId);
+
+      return order;
+    });
+
+    broadcastOrders();
+    broadcastProducts();
+
+    res.json({ success: true, order: result });
+  } catch (error) {
+    console.error('Create order error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // Reduce stock
-  cart.items.forEach(item => {
-    const product = store.products.get(item.productId);
-    product.stock -= item.quantity;
-  });
-
-  const orderId = `ORD-${store.nextOrderId++}`;
-  const order = {
-    id: orderId,
-    userId,
-    customerInfo,
-    items: cart.items,
-    totalPrice: cart.total,
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  store.orders.set(orderId, order);
-  store.processingQueue.push(orderId);
-
-  // Clear cart
-  store.carts.set(userId, { items: [], total: 0 });
-
-  broadcastOrders();
-  broadcastProducts();
-
-  res.json({ success: true, order });
 });
 
 // Get single order
-app.get('/api/orders/:orderId', authenticateToken, (req, res) => {
-  const order = store.orders.get(req.params.orderId);
-  if (!order) {
-    return res.status(404).json({ error: 'Order not found' });
-  }
+app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
+  try {
+    const order = await orderModel.getOrderById(req.params.orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
-  // Users can only see their own orders (unless admin)
-  if (req.user.role !== 'admin' && order.userId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
+    // Users can only see their own orders (unless admin)
+    if (req.user.role !== 'admin' && order.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
 
-  res.json(order);
+    res.json(order);
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Cancel order
-app.post('/api/orders/:orderId/cancel', authenticateToken, (req, res) => {
-  const order = store.orders.get(req.params.orderId);
-  if (!order) {
-    return res.status(404).json({ error: 'Order not found' });
-  }
-
-  if (req.user.role !== 'admin' && order.userId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
-
-  if (order.status === 'completed') {
-    return res.status(400).json({ error: 'Cannot cancel completed order' });
-  }
-
-  order.status = 'cancelled';
-  order.updatedAt = new Date().toISOString();
-
-  // Return stock
-  order.items.forEach(item => {
-    const product = store.products.get(item.productId);
-    if (product) {
-      product.stock += item.quantity;
+app.post('/api/orders/:orderId/cancel', authenticateToken, async (req, res) => {
+  try {
+    const order = await orderModel.getOrderById(req.params.orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
     }
-  });
 
-  broadcastOrders();
-  broadcastProducts();
-  res.json({ success: true, order });
+    if (req.user.role !== 'admin' && order.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (order.status === 'completed') {
+      return res.status(400).json({ error: 'Cannot cancel completed order' });
+    }
+
+    // Use transaction to return stock
+    const updatedOrder = await db.transaction(async (client) => {
+      // Return stock
+      for (const item of order.items) {
+        const product = await productModel.getProductById(item.productId);
+        if (product) {
+          await productModel.updateProductStock(item.productId, product.stock + item.quantity);
+        }
+      }
+
+      // Update order status
+      return await orderModel.updateOrderStatus(req.params.orderId, 'cancelled');
+    });
+
+    broadcastOrders();
+    broadcastProducts();
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Update order status (admin only)
-app.put('/api/orders/:orderId/status', authenticateToken, requireRole('admin'), (req, res) => {
-  const { status } = req.body;
-  const order = store.orders.get(req.params.orderId);
+app.put('/api/orders/:orderId/status', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await orderModel.getOrderById(req.params.orderId);
 
-  if (!order) {
-    return res.status(404).json({ error: 'Order not found' });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    let updatedOrder;
+    if (status === 'cancelled' && order.status !== 'cancelled') {
+      // Use transaction to return stock when cancelling
+      updatedOrder = await db.transaction(async (client) => {
+        // Return stock
+        for (const item of order.items) {
+          const product = await productModel.getProductById(item.productId);
+          if (product) {
+            await productModel.updateProductStock(item.productId, product.stock + item.quantity);
+          }
+        }
+
+        // Update order status
+        return await orderModel.updateOrderStatus(req.params.orderId, status);
+      });
+    } else {
+      updatedOrder = await orderModel.updateOrderStatus(req.params.orderId, status);
+    }
+
+    broadcastOrders();
+    broadcastProducts();
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ error: 'Invalid status' });
-  }
-
-  // If cancelling, return stock
-  if (status === 'cancelled' && order.status !== 'cancelled') {
-    order.items.forEach(item => {
-      const product = store.products.get(item.productId);
-      if (product) {
-        product.stock += item.quantity;
-      }
-    });
-  }
-
-  order.status = status;
-  order.updatedAt = new Date().toISOString();
-
-  broadcastOrders();
-  broadcastProducts();
-  res.json({ success: true, order });
 });
 
 // ============ ADMIN ENDPOINTS ============
 
 // Get all orders (admin only)
-app.get('/api/admin/orders', authenticateToken, requireRole('admin'), (req, res) => {
-  const ordersArray = Array.from(store.orders.values());
-  res.json(ordersArray);
+app.get('/api/admin/orders', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const orders = await orderModel.getAllOrders();
+    res.json(orders);
+  } catch (error) {
+    console.error('Get admin orders error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Get all users (admin only)
-app.get('/api/admin/users', authenticateToken, requireRole('admin'), (req, res) => {
-  const users = Array.from(store.users.values()).map(user => ({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    createdAt: user.createdAt,
-  }));
-  res.json(users);
+app.get('/api/admin/users', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const users = await userModel.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error('Get admin users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Update user role (admin only)
-app.put('/api/admin/users/:userId/role', authenticateToken, requireRole('admin'), (req, res) => {
-  const { role } = req.body;
-  const user = store.users.get(req.params.userId);
+app.put('/api/admin/users/:userId/role', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { role } = req.body;
+    const user = await userModel.getUserById(req.params.userId);
 
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!['admin', 'customer'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    const updatedUser = await userModel.updateUserRole(req.params.userId, role);
+    res.json({ success: true, user: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.name, role: updatedUser.role } });
+  } catch (error) {
+    console.error('Update user role error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  if (!['admin', 'customer'].includes(role)) {
-    return res.status(400).json({ error: 'Invalid role' });
-  }
-
-  user.role = role;
-  res.json({ success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
 // ============ HELPER FUNCTIONS ============
 
 // Broadcast functions
-function broadcastOrders() {
-  const ordersArray = Array.from(store.orders.values());
-  io.emit('orders-updated', ordersArray);
+async function broadcastOrders() {
+  try {
+    const ordersArray = await orderModel.getAllOrders();
+    io.emit('orders-updated', ordersArray);
+  } catch (error) {
+    console.error('Error broadcasting orders:', error);
+  }
 }
 
-function broadcastProducts() {
-  const productsArray = Array.from(store.products.values());
-  io.emit('products-updated', productsArray);
+async function broadcastProducts() {
+  try {
+    const productsArray = await productModel.getAllProducts();
+    io.emit('products-updated', productsArray);
+  } catch (error) {
+    console.error('Error broadcasting products:', error);
+  }
 }
 
-function broadcastCartUpdate(userId) {
-  const cart = store.carts.get(userId) || { items: [], total: 0 };
-  io.to(userId).emit('cart-updated', cart);
+async function broadcastCartUpdate(userId) {
+  try {
+    const cart = await cartModel.getCartByUserId(userId);
+    io.to(userId).emit('cart-updated', cart);
+  } catch (error) {
+    console.error('Error broadcasting cart update:', error);
+  }
 }
 
 // ============ WEBSOCKET EVENTS ============
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log(`🔗 User connected: ${socket.id}`);
 
   // Authenticate socket connection
@@ -507,8 +650,14 @@ io.on('connection', (socket) => {
   });
 
   // Send initial data
-  socket.emit('products-updated', Array.from(store.products.values()));
-  socket.emit('orders-updated', Array.from(store.orders.values()));
+  try {
+    const products = await productModel.getAllProducts();
+    const orders = await orderModel.getAllOrders();
+    socket.emit('products-updated', products);
+    socket.emit('orders-updated', orders);
+  } catch (error) {
+    console.error('Error sending initial data:', error);
+  }
 
   // Handle disconnect
   socket.on('disconnect', () => {
@@ -517,64 +666,81 @@ io.on('connection', (socket) => {
 });
 
 // ============ BACKGROUND WORKER ============
-function startOrderProcessor() {
-  setInterval(() => {
-    if (store.processingQueue.length === 0) return;
+async function startOrderProcessor() {
+  setInterval(async () => {
+    try {
+      // Get pending orders
+      const allOrders = await orderModel.getAllOrders();
+      const pendingOrders = allOrders.filter(order => order.status === 'pending').slice(0, 3);
 
-    const ordersToProcess = store.processingQueue.splice(0, 3);
+      for (const order of pendingOrders) {
+        // Simulate processing delay
+        setTimeout(async () => {
+          try {
+            await orderModel.updateOrderStatus(order.id, 'processing');
+            await broadcastOrders();
 
-    ordersToProcess.forEach((orderId) => {
-      const order = store.orders.get(orderId);
-      if (order && order.status === 'pending') {
-        setTimeout(() => {
-          order.status = 'processing';
-          order.updatedAt = new Date().toISOString();
-          broadcastOrders();
-
-          setTimeout(() => {
-            order.status = 'completed';
-            order.updatedAt = new Date().toISOString();
-            broadcastOrders();
-            io.emit('order-completed', order);
-          }, 2000 + Math.random() * 2000);
+            // Simulate completion delay
+            setTimeout(async () => {
+              try {
+                await orderModel.updateOrderStatus(order.id, 'completed');
+                await broadcastOrders();
+                io.emit('order-completed', order);
+              } catch (error) {
+                console.error('Error completing order:', error);
+              }
+            }, 2000 + Math.random() * 2000);
+          } catch (error) {
+            console.error('Error processing order:', error);
+          }
         }, 1000 + Math.random() * 2000);
       }
-    });
+    } catch (error) {
+      console.error('Error in order processor:', error);
+    }
   }, 2000);
 }
 
 // ============ INITIALIZE ADMIN USER ============
 async function initializeAdmin() {
-  const adminExists = Array.from(store.users.values()).some(u => u.role === 'admin');
-  if (!adminExists) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    const adminUser = {
-      id: 'user-admin',
-      email: 'admin@sweetshop.com',
-      name: 'Admin',
-      role: 'admin',
-      password: hashedPassword,
-      createdAt: new Date().toISOString(),
-      cart: { items: [], total: 0 },
-    };
-    store.users.set('user-admin', adminUser);
-    store.carts.set('user-admin', { items: [], total: 0 });
-    console.log('👑 Admin user created: admin@sweetshop.com / admin123');
+  try {
+    const adminExists = await userModel.getUserByEmail('admin@sweetshop.com');
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const adminUser = await userModel.createUser({
+        id: 'user-admin',
+        email: 'admin@sweetshop.com',
+        name: 'Admin',
+        password: hashedPassword,
+        role: 'admin'
+      });
+      await cartModel.createCart('user-admin');
+      console.log('👑 Admin user created: admin@sweetshop.com / admin123');
+    }
+  } catch (error) {
+    console.error('Error initializing admin:', error);
   }
 }
 
 // ============ SERVER STARTUP ============
-initializeAdmin();
-startOrderProcessor();
-
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`
+
+// Initialize app and start server
+initializeApp().then(() => {
+  initializeAdmin();
+  startOrderProcessor();
+
+  httpServer.listen(PORT, () => {
+    console.log(`
 🚀 E-commerce Server running on http://localhost:${PORT}
 📡 WebSocket ready for connections
-💾 In-memory data store initialized
+🐘 PostgreSQL database connected
 🔄 Background order processor started
 👑 Admin login: admin@sweetshop.com / admin123
 🛒 E-commerce features: Auth, Cart, Orders, Admin Panel
-  `);
+    `);
+  });
+}).catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
