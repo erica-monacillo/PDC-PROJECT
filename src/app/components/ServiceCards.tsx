@@ -422,7 +422,7 @@ export function ServiceCards() {
 
         {/* Header */}
         <div style={{ position: 'relative' }}>
-          <p className="section-eyebrow">Artisan Experience</p>
+          <p className="section-eyebrow"></p>
           <h2 className="section-title">
             How We <em>Serve</em> You
           </h2>

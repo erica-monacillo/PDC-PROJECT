@@ -214,7 +214,7 @@ export function SocialProof() {
 
         <div style={{ position: 'relative' }}>
           {/* Header */}
-          <p className="rev-eyebrow">Customer Stories</p>
+          <p className="rev-eyebrow"></p>
           <h2 className="rev-title">What Our <em>Customers</em> Say</h2>
           <div className="rev-divider" />
           <p className="rev-subtitle">Trusted by families across Jaipur</p>
