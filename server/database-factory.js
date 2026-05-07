@@ -5,7 +5,7 @@ dotenv.config();
 
 // Determine database type
 const USE_SQLITE = process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:');
-const USE_POSTGRES = !USE_SQLITE && (process.env.DB_HOST || process.env.DB_NAME);
+const USE_POSTGRES = !USE_SQLITE && (process.env.DB_HOST || process.env.DB_NAME || (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgresql://')));
 
 export async function initializeDatabaseSystem() {
   if (USE_SQLITE) {
