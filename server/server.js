@@ -36,22 +36,49 @@ app.get('/', (req, res) => {
       <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
         h1 { color: #333; }
-        .status { background: #4CAF50; color: white; padding: 10px; border-radius: 5px; }
-        .endpoint { background: white; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #4CAF50; }
-        .method { font-weight: bold; color: #4CAF50; }
+        h2 { color: #555; }
+        .status { background: #4CAF50; color: white; padding: 10px 15px; border-radius: 5px; display: inline-block; margin-bottom: 20px; }
+        .endpoint { background: white; padding: 12px 15px; margin: 8px 0; border-radius: 5px; border-left: 4px solid #4CAF50; display: flex; align-items: center; gap: 10px; }
+        .method-get { font-weight: bold; color: #4CAF50; min-width: 50px; }
+        .method-post { font-weight: bold; color: #2196F3; min-width: 50px; }
+        .method-put { font-weight: bold; color: #FF9800; min-width: 50px; }
+        .method-delete { font-weight: bold; color: #f44336; min-width: 50px; }
+        a { color: #333; text-decoration: none; }
+        a:hover { text-decoration: underline; color: #4CAF50; }
+        .uptime { color: #888; margin-top: 20px; font-size: 14px; }
+        .note { background: #fff3cd; padding: 10px; border-radius: 5px; font-size: 13px; color: #856404; margin-top: 5px; }
       </style>
     </head>
     <body>
       <h1> PDC-PROJECT API</h1>
       <div class="status"> Server is running</div>
+
       <h2> API Endpoints</h2>
-      <div class="endpoint"><span class="method">POST</span> /api/auth/register</div>
-      <div class="endpoint"><span class="method">POST</span> /api/auth/login</div>
-      <div class="endpoint"><span class="method">GET</span> /api/products</div>
-      <div class="endpoint"><span class="method">GET</span> /api/cart</div>
-      <div class="endpoint"><span class="method">POST</span> /api/orders</div>
-      <div class="endpoint"><span class="method">GET</span> /api/orders</div>
-      <p> Uptime: ${Math.floor(process.uptime())} seconds</p>
+      <div class="note"> GET endpoints are clickable. POST/PUT/DELETE require a tool like Postman.</div>
+
+      <h3>Auth</h3>
+      <div class="endpoint"><span class="method-post">POST</span> /api/auth/register</div>
+      <div class="endpoint"><span class="method-post">POST</span> /api/auth/login</div>
+      <div class="endpoint"><span class="method-get">GET</span> <a href="/api/auth/profile" target="_blank">/api/auth/profile</a></div>
+
+      <h3>Products</h3>
+      <div class="endpoint"><span class="method-get">GET</span> <a href="/api/products" target="_blank">/api/products</a></div>
+
+      <h3>Cart</h3>
+      <div class="endpoint"><span class="method-get">GET</span> /api/cart (requires login)</div>
+      <div class="endpoint"><span class="method-post">POST</span> /api/cart/add</div>
+      <div class="endpoint"><span class="method-put">PUT</span> /api/cart/update</div>
+      <div class="endpoint"><span class="method-delete">DELETE</span> /api/cart</div>
+
+      <h3>Orders</h3>
+      <div class="endpoint"><span class="method-get">GET</span> /api/orders (requires login)</div>
+      <div class="endpoint"><span class="method-post">POST</span> /api/orders</div>
+
+      <h3>Admin</h3>
+      <div class="endpoint"><span class="method-get">GET</span> /api/admin/orders (admin only)</div>
+      <div class="endpoint"><span class="method-get">GET</span> /api/admin/users (admin only)</div>
+
+      <p class="uptime"> Uptime: ${Math.floor(process.uptime())} seconds</p>
     </body>
     </html>
   `);
