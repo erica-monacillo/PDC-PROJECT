@@ -144,7 +144,7 @@ export function ServiceCards() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@200;300;400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@200;300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
 
         .luxury-section {
           position: relative;
@@ -217,10 +217,12 @@ export function ServiceCards() {
           color: rgba(180,83,9,0.9);
         }
         .section-subtitle {
+          font-family: 'Lora', serif;
           font-size: 13px;
-          font-weight: 200;
-          letter-spacing: 0.12em;
-          color: rgba(59,32,5,0.45);
+          font-weight: 400;
+          font-style: italic;
+          letter-spacing: 0.02em;
+          color: rgba(59,32,5,0.52);
           text-align: center;
           max-width: 400px;
           margin: 0 auto 80px;
@@ -344,11 +346,12 @@ export function ServiceCards() {
         }
 
         .card-desc {
+          font-family: 'Lora', serif;
           font-size: 12.5px;
-          font-weight: 200;
-          letter-spacing: 0.05em;
-          color: rgba(59,32,5,0.55);
-          line-height: 1.85;
+          font-weight: 400;
+          letter-spacing: 0.02em;
+          color: rgba(59,32,5,0.68);
+          line-height: 1.8;
           margin: 0 0 28px;
         }
 

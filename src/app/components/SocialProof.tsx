@@ -97,7 +97,7 @@ export function SocialProof() {
         .rev-subtitle {
           font-family: 'Lora', serif;
           font-size: 13px; font-weight: 400; font-style: italic;
-          color: rgba(59,42,26,0.45); text-align: center;
+          color: rgba(59,42,26,0.58); text-align: center;
           letter-spacing: 0.02em;
           margin-bottom: 72px;
         }
@@ -149,7 +149,7 @@ export function SocialProof() {
         .rev-text {
           font-family: 'Lora', serif;
           font-size: 0.95rem; font-weight: 400; font-style: italic;
-          color: rgba(59,42,26,0.72); line-height: 1.85;
+          color: rgba(59,42,26,0.78); line-height: 1.85;
           margin-bottom: 20px;
         }
 
@@ -172,8 +172,8 @@ export function SocialProof() {
         /* Reviewer */
         .rev-name {
           font-family: 'Lora', serif;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
-          color: rgba(59,42,26,0.5);
+          font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+          color: rgba(59,42,26,0.65);
         }
 
         /* Stats row */
