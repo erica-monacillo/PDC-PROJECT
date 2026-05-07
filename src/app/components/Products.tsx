@@ -452,7 +452,7 @@ export function Products() {
                       <div className="prod-desc">{product.description}</div>
 
                       <div className="prod-price-row">
-                        <span className="prod-price">₹{product.price.toFixed(2)}</span>
+                        <span className="prod-price">₹{parseFloat(product.price).toFixed(2)}</span>
                         <span className={`prod-stock ${
                           outOfStock ? 'prod-stock-out' :
                           product.stock <= 10 ? 'prod-stock-low' :

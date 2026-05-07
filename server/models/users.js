@@ -38,7 +38,7 @@ export const updateUserRole = async (id, role) => {
 };
 
 export const getNextUserId = async () => {
-  const query = "SELECT COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0) + 1 as next_id FROM users WHERE id LIKE 'user-%'";
+  const query = "SELECT COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0) + 1 as next_id FROM users WHERE id ~ '^user-[0-9]+$'";
   const result = await db.query(query);
   return `user-${result.rows[0].next_id}`;
 };
