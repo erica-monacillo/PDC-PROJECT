@@ -42,7 +42,7 @@ export async function initializeDatabaseSystem() {
     const cartModel = await import('./models/carts.js');
 
     return {
-      db: postgresDb.default,
+      db: { transaction: postgresDb.transaction },
       userModel,
       productModel,
       orderModel,

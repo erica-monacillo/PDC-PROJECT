@@ -127,13 +127,13 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
               {cart.items.map((item) => (
                 <div key={item.productId} className="flex justify-between text-sm">
                   <span>{item.name} × {item.quantity}</span>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
               <div className="border-t border-amber-200 pt-2 mt-3">
                 <div className="flex justify-between font-semibold text-gray-900">
                   <span>Total</span>
-                  <span>${cart.total.toFixed(2)}</span>
+                  <span>${parseFloat(cart.total).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -314,7 +314,7 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
               disabled={loading || cart.items.length === 0}
               className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold"
             >
-              {loading ? 'Placing Order...' : `Place Order - $${cart.total.toFixed(2)}`}
+              {loading ? 'Placing Order...' : `Place Order - $${parseFloat(cart.total).toFixed(2)}`}
             </button>
           </div>
         </form>

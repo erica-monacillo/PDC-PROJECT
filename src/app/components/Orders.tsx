@@ -459,7 +459,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                         </div>
                       </div>
                       <div className="ord-card-right">
-                        <div className="ord-total">₹{order.totalPrice?.toFixed(2) ?? '0.00'}</div>
+                        <div className="ord-total">₹{parseFloat(order.totalPrice ?? 0).toFixed(2) ?? '0.00'}</div>
                         <div className="ord-item-count">{order.items?.length ?? 0} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}</div>
                       </div>
                     </div>
@@ -488,7 +488,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                               <div className="ord-item-qty">Qty: {item.quantity}</div>
                             </div>
                           </div>
-                          <div className="ord-item-price">₹{(item.price * item.quantity).toFixed(2)}</div>
+                          <div className="ord-item-price">₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
                         </div>
                       ))}
                     </div>
