@@ -19,7 +19,7 @@ const io = new Server(httpServer, {
   }
 });
 
-// JWT Secret (in production, use environment variable)
+// JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Middleware
@@ -31,19 +31,6 @@ app.use((req, res, next) => {
   res.setHeader('X-Worker-Port', process.env.PORT || 3001);
   next();
 });
-
-// ── Initialize DB Sequence ────────────────────────────
-const initDb = async () => {
-  await db.query(`CREATE SEQUENCE IF NOT EXISTS user_id_seq`);
-  await db.query(`
-    SELECT setval('user_id_seq',
-      COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0))
-    FROM users
-    WHERE id ~ '^user-[0-9]+$'
-  `);
-};
-
-initDb().catch(console.error);
 
 // Homepage
 app.get('/', (req, res) => {
@@ -69,11 +56,11 @@ app.get('/', (req, res) => {
       </style>
     </head>
     <body>
-      <h1> PDC-PROJECT API</h1>
-      <div class="status"> Server is running</div>
+      <h1>🍰 PDC-PROJECT API</h1>
+      <div class="status">✅ Server is running</div>
 
-      <h2> API Endpoints</h2>
-      <div class="note"> GET endpoints are clickable. POST/PUT/DELETE require a tool like Postman.</div>
+      <h2>📋 API Endpoints</h2>
+      <div class="note">⚠️ GET endpoints are clickable. POST/PUT/DELETE require a tool like Postman.</div>
 
       <h3>Auth</h3>
       <div class="endpoint"><span class="method-post">POST</span> /api/auth/register</div>
@@ -97,13 +84,13 @@ app.get('/', (req, res) => {
       <div class="endpoint"><span class="method-get">GET</span> /api/admin/orders (admin only)</div>
       <div class="endpoint"><span class="method-get">GET</span> /api/admin/users (admin only)</div>
 
-      <p class="uptime"> Uptime: ${Math.floor(process.uptime())} seconds</p>
+      <p class="uptime">⏱️ Uptime: ${Math.floor(process.uptime())} seconds</p>
     </body>
     </html>
   `);
 });
 
-// DATABASE INITIALIZATION
+// ============ DATABASE INITIALIZATION ============
 async function initializeApp() {
   try {
     // Initialize database system
@@ -130,6 +117,20 @@ async function initializeApp() {
 
     // Initialize database schema
     await initializeDatabase();
+
+    // ── Initialize User ID Sequence (db is ready here!) ──
+    try {
+      await db.query(`CREATE SEQUENCE IF NOT EXISTS user_id_seq`);
+      await db.query(`
+        SELECT setval('user_id_seq',
+          COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0))
+        FROM users
+        WHERE id ~ '^user-[0-9]+$'
+      `);
+      console.log('✅ User ID sequence initialized');
+    } catch (seqError) {
+      console.error('Warning: Could not initialize user_id_seq:', seqError.message);
+    }
 
     // Initialize products if they don't exist
     await initializeProducts();
@@ -540,7 +541,6 @@ app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Users can only see their own orders (unless admin)
     if (req.user.role !== 'admin' && order.userId !== req.user.id) {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -568,17 +568,13 @@ app.post('/api/orders/:orderId/cancel', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Cannot cancel completed order' });
     }
 
-    // Use transaction to return stock
     const updatedOrder = await db.transaction(async (client) => {
-      // Return stock
       for (const item of order.items) {
         const product = await productModel.getProductById(item.productId);
         if (product) {
           await productModel.updateProductStock(item.productId, product.stock + item.quantity);
         }
       }
-
-      // Update order status
       return await orderModel.updateOrderStatus(req.params.orderId, 'cancelled');
     });
 
@@ -608,17 +604,13 @@ app.put('/api/orders/:orderId/status', authenticateToken, requireRole('admin'), 
 
     let updatedOrder;
     if (status === 'cancelled' && order.status !== 'cancelled') {
-      // Use transaction to return stock when cancelling
       updatedOrder = await db.transaction(async (client) => {
-        // Return stock
         for (const item of order.items) {
           const product = await productModel.getProductById(item.productId);
           if (product) {
             await productModel.updateProductStock(item.productId, product.stock + item.quantity);
           }
         }
-
-        // Update order status
         return await orderModel.updateOrderStatus(req.params.orderId, status);
       });
     } else {
@@ -682,7 +674,6 @@ app.put('/api/admin/users/:userId/role', authenticateToken, requireRole('admin')
 
 // ============ HELPER FUNCTIONS ============
 
-// Broadcast functions
 async function broadcastOrders() {
   try {
     const ordersArray = await orderModel.getAllOrders();
@@ -714,7 +705,6 @@ async function broadcastCartUpdate(userId) {
 io.on('connection', async (socket) => {
   console.log(`🔗 User connected: ${socket.id}`);
 
-  // Authenticate socket connection
   socket.on('authenticate', (token) => {
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
@@ -726,7 +716,6 @@ io.on('connection', async (socket) => {
     }
   });
 
-  // Send initial data
   try {
     const products = await productModel.getAllProducts();
     const orders = await orderModel.getAllOrders();
@@ -736,7 +725,6 @@ io.on('connection', async (socket) => {
     console.error('Error sending initial data:', error);
   }
 
-  // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`❌ User disconnected: ${socket.id}`);
   });
@@ -781,7 +769,7 @@ async function initializeAdmin() {
     const adminExists = await userModel.getUserByEmail('admin@sweetshop.com');
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
-      const adminUser = await userModel.createUser({
+      await userModel.createUser({
         id: 'user-admin',
         email: 'admin@sweetshop.com',
         name: 'Admin',
@@ -799,7 +787,6 @@ async function initializeAdmin() {
 // ============ SERVER STARTUP ============
 const PORT = process.env.PORT || 3001;
 
-// Initialize app and start server
 initializeApp().then(() => {
   initializeAdmin();
   startOrderProcessor();
