@@ -38,10 +38,7 @@ export const updateUserRole = async (id, role) => {
 };
 
 export const getNextUserId = async () => {
-  const result = await db.query(`
-    SELECT COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0) + 1 AS next_id
-    FROM users
-    WHERE id ~ '^user-[0-9]+$'
-  `);
-  return `user-${result.rows[0].next_id}`;
+  // Use random UUID - guaranteed unique, no race condition
+  const result = await db.query(`SELECT gen_random_uuid() AS id`);
+  return `user-${result.rows[0].id.split('-')[0]}`;
 };
