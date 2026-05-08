@@ -320,6 +320,22 @@ app.get('/api/products/:productId', async (req, res) => {
   }
 });
 
+// ====== REMOVE BEFORE PRODUCTION ======
+app.get('/api/test/reset-stock', async (req, res) => {
+  try {
+    const products = ['prod-1','prod-2','prod-3','prod-4',
+                      'prod-5','prod-6','prod-7','prod-8'];
+    for (const id of products) {
+      await productModel.updateProductStock(id, 999);
+    }
+    res.json({ success: true, message: 'All stock reset to 999' });
+  } catch (error) {
+    console.error('Reset stock error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// ====== REMOVE BEFORE PRODUCTION ======
+
 // Update product (admin only)
 app.put('/api/products/:productId', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
