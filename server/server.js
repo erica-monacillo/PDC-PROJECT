@@ -733,18 +733,15 @@ io.on('connection', async (socket) => {
 async function startOrderProcessor() {
   setInterval(async () => {
     try {
-      // Get pending orders
       const allOrders = await orderModel.getAllOrders();
       const pendingOrders = allOrders.filter(order => order.status === 'pending').slice(0, 3);
 
       for (const order of pendingOrders) {
-        // Simulate processing delay
         setTimeout(async () => {
           try {
             await orderModel.updateOrderStatus(order.id, 'processing');
             await broadcastOrders();
 
-            // Simulate completion delay
             setTimeout(async () => {
               try {
                 await orderModel.updateOrderStatus(order.id, 'completed');
@@ -753,16 +750,16 @@ async function startOrderProcessor() {
               } catch (error) {
                 console.error('Error completing order:', error);
               }
-            }, 2000 + Math.random() * 2000);
+            }, 10000);
           } catch (error) {
             console.error('Error processing order:', error);
           }
-        }, 1000 + Math.random() * 2000);
+        }, 5000);
       }
     } catch (error) {
       console.error('Error in order processor:', error);
     }
-  }, 2000);
+  }, 30000);
 }
 
 // ============ INITIALIZE ADMIN USER ============
