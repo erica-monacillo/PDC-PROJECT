@@ -32,6 +32,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Initialize DB Sequence ────────────────────────────
+const initDb = async () => {
+  await db.query(`CREATE SEQUENCE IF NOT EXISTS user_id_seq`);
+  await db.query(`
+    SELECT setval('user_id_seq',
+      COALESCE(MAX(CAST(SUBSTRING(id FROM 6) AS INTEGER)), 0))
+    FROM users
+    WHERE id ~ '^user-[0-9]+$'
+  `);
+};
+
+initDb().catch(console.error);
+
 // Homepage
 app.get('/', (req, res) => {
   res.send(`
@@ -793,12 +806,12 @@ initializeApp().then(() => {
 
   httpServer.listen(PORT, () => {
     console.log(`
-🚀 E-commerce Server running on http://localhost:${PORT}
-📡 WebSocket ready for connections
-🐘 PostgreSQL database connected
-🔄 Background order processor started
-👑 Admin login: admin@sweetshop.com / admin123
-🛒 E-commerce features: Auth, Cart, Orders, Admin Panel
+ E-commerce Server running on http://localhost:${PORT}
+ WebSocket ready for connections
+ PostgreSQL database connected
+ Background order processor started
+ Admin login: admin@sweetshop.com / admin123
+ E-commerce features: Auth, Cart, Orders, Admin Panel
     `);
   });
 }).catch((error) => {
