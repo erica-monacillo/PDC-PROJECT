@@ -26,6 +26,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 app.use(cors());
 app.use(express.json());
 
+// PDC: Show which worker handled the request
+app.use((req, res, next) => {
+  res.setHeader('X-Worker-Port', process.env.PORT || 3001);
+  next();
+});
+
 // Homepage
 app.get('/', (req, res) => {
   res.send(`
