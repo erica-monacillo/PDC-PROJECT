@@ -59,7 +59,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
     try {
       setLoading(true);
       const res = await fetch('https://pdc-project.onrender.com/api/orders', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
       });
       if (res.ok) {
         const data: Order[] = await res.json();
@@ -76,7 +76,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
     try {
       const res = await fetch(`https://pdc-project.onrender.com/api/orders/${orderId}/cancel`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
       });
       if (res.ok) loadOrders();
     } catch (err) {
