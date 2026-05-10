@@ -32,6 +32,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Homepage
 app.get('/', (req, res) => {
   res.send(`
@@ -56,11 +61,11 @@ app.get('/', (req, res) => {
       </style>
     </head>
     <body>
-      <h1>🍰 PDC-PROJECT API</h1>
-      <div class="status">✅ Server is running</div>
+      <h1>PDC-PROJECT API</h1>
+      <div class="status">Server is running</div>
 
-      <h2>📋 API Endpoints</h2>
-      <div class="note">⚠️ GET endpoints are clickable. POST/PUT/DELETE require a tool like Postman.</div>
+      <h2>API Endpoints</h2>
+      <div class="note">GET endpoints are clickable. POST/PUT/DELETE require a tool like Postman.</div>
 
       <h3>Auth</h3>
       <div class="endpoint"><span class="method-post">POST</span> /api/auth/register</div>

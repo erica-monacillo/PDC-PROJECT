@@ -8,14 +8,13 @@ class UserBehavior(SequentialTaskSet):
         self.token = None
         self.product_id = None
         self.user_id = None
+        self.cart_ready = False      # new flag
 
-        # ── Generate unique user for each simulated user ──────
         unique_id = str(uuid.uuid4())[:8]
         self.email = f"user_{unique_id}@test.com"
         self.password = "password123"
         self.name = f"Test User {unique_id}"
 
-        # ── REGISTER ──────────────────────────────────────────
         with self.client.post("/api/auth/register", json={
             "email": self.email,
             "password": self.password,
@@ -28,7 +27,6 @@ class UserBehavior(SequentialTaskSet):
                 res.failure(f"Register failed: {res.status_code} - {res.text}")
                 return
 
-        # ── LOGIN ─────────────────────────────────────────────
         with self.client.post("/api/auth/login", json={
             "email": self.email,
             "password": self.password
@@ -47,9 +45,8 @@ class UserBehavior(SequentialTaskSet):
                 res.failure(f"Login failed: {res.status_code} - {res.text}")
                 return
 
-    # ── AUTH ──────────────────────────────────────────────────
     @task
-    def get_profile(self):
+    def step_1_get_profile(self):
         if not self.token:
             return
         with self.client.get("/api/auth/profile", catch_response=True) as res:
@@ -60,23 +57,23 @@ class UserBehavior(SequentialTaskSet):
             else:
                 res.failure(f"Get profile failed: {res.status_code}")
 
-    # ── PRODUCTS ──────────────────────────────────────────────
     @task
-    def get_products(self):
+    def step_2_get_products(self):
         with self.client.get("/api/products", catch_response=True) as res:
             if res.status_code == 200:
                 products = res.json()
-                if products:
+                if products and len(products) > 0:
+                    # pick a random product instead of always products[0]
+                    random_product = random.choice(products)
                     self.product_id = (
-                        products[0].get("id") or products[0].get("_id")
+                        random_product.get("id") or random_product.get("_id")
                     )
                 res.success()
             else:
                 res.failure(f"Get products failed: {res.status_code}")
 
-    # ── CART ──────────────────────────────────────────────────
     @task
-    def view_cart(self):
+    def step_3_view_cart(self):
         if not self.token:
             return
         with self.client.get("/api/cart", catch_response=True) as res:
@@ -86,40 +83,38 @@ class UserBehavior(SequentialTaskSet):
                 res.failure(f"View cart failed: {res.status_code}")
 
     @task
-    def add_to_cart(self):
+    def step_4_add_to_cart(self):
         if not self.token or not self.product_id:
             return
         with self.client.post("/api/cart/add", json={
             "productId": self.product_id,
-            "quantity": random.randint(1, 3)
+            "quantity": 1             # fixed to 1 to avoid stock issues
         }, catch_response=True) as res:
             if res.status_code in [200, 201]:
+                self.cart_ready = True
                 res.success()
             else:
+                self.cart_ready = False
                 res.failure(f"Add to cart failed: {res.status_code} - {res.text}")
 
     @task
-    def update_cart(self):
-        # ── FIX: use productId instead of itemId ──────────────
-        if not self.token or not self.product_id:
-            return
+    def step_5_update_cart(self):
+        if not self.token or not self.product_id or not self.cart_ready:
+            return                    # skip if cart add failed
         with self.client.put("/api/cart/update", json={
             "productId": self.product_id,
-            "quantity": random.randint(1, 5)
+            "quantity": 1
         }, catch_response=True) as res:
             if res.status_code == 200:
                 res.success()
             else:
                 res.failure(f"Update cart failed: {res.status_code} - {res.text}")
 
-    # ── ORDERS ────────────────────────────────────────────────
     @task
-    def place_order(self):
-        if not self.token or not self.product_id:
-            return
-
-        # ── FIX: match exact backend customerInfo schema ──────
-        payload = {
+    def step_6_place_order(self):
+        if not self.token or not self.cart_ready:
+            return                    # skip if cart add failed
+        with self.client.post("/api/orders", json={
             "customerInfo": {
                 "name": self.name,
                 "email": self.email,
@@ -129,16 +124,15 @@ class UserBehavior(SequentialTaskSet):
                 "state": "Rajasthan",
                 "zipCode": "302001"
             }
-        }
-
-        with self.client.post("/api/orders", json=payload, catch_response=True) as res:
+        }, catch_response=True) as res:
             if res.status_code in [200, 201]:
+                self.cart_ready = False   # reset after order placed
                 res.success()
             else:
                 res.failure(f"Place order failed: {res.status_code} - {res.text}")
 
     @task
-    def get_orders(self):
+    def step_7_get_orders(self):
         if not self.token:
             return
         with self.client.get("/api/orders", catch_response=True) as res:
@@ -147,9 +141,8 @@ class UserBehavior(SequentialTaskSet):
             else:
                 res.failure(f"Get orders failed: {res.status_code}")
 
-    # ── CLEANUP ───────────────────────────────────────────────
     @task
-    def delete_cart(self):
+    def step_8_delete_cart(self):
         if not self.token:
             return
         with self.client.delete("/api/cart", catch_response=True) as res:
@@ -159,8 +152,7 @@ class UserBehavior(SequentialTaskSet):
                 res.failure(f"Delete cart failed: {res.status_code}")
 
 
-# ── MAIN USER ─────────────────────────────────────────────────
 class PDCUser(HttpUser):
     tasks = [UserBehavior]
     wait_time = between(1, 3)
-    host = "https://pdc-project.onrender.com"
+    host = "http://localhost:80"
