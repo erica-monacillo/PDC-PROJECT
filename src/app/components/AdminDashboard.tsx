@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                           {order.customerInfo.name} • {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-gray-600">
-                          ${parseFloat(order.totalPrice).toFixed(2)} • {order.items.length} items
+                          ${parseFloat(String(order.totalPrice)).toFixed(2)} • {order.items.length} items
                         </div>
                       </div>
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -242,7 +242,7 @@ export default function AdminDashboard() {
                       {selectedOrder.items.map((item, index) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span>{item.name} × {item.quantity}</span>
-                          <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                          <span>${(parseFloat(String(item.price)) * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>

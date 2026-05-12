@@ -295,7 +295,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
                 <div className="cart-item-emoji">🍰</div>
                 <div className="cart-item-info">
                   <div className="cart-item-name">{item.name}</div>
-                  <div className="cart-item-price">₹{parseFloat(item.price).toFixed(2)} each</div>
+                  <div className="cart-item-price">₹{parseFloat(String(item.price)).toFixed(2)} each</div>
                 </div>
                 <div className="cart-qty">
                   <button
@@ -310,7 +310,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
                     disabled={loading}
                   ><Plus size={12} /></button>
                 </div>
-                <div className="cart-item-total">₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
+                <div className="cart-item-total">₹{(parseFloat(String(item.price)) * item.quantity).toFixed(2)}</div>
                 <button
                   className="cart-remove"
                   onClick={() => removeFromCart(item.productId)}
@@ -326,7 +326,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
           <div className="cart-footer">
             <div className="cart-total-row">
               <span className="cart-total-label">Total</span>
-              <span className="cart-total-amount">₹{parseFloat(cart.total).toFixed(2)}</span>
+              <span className="cart-total-amount">₹{parseFloat(String(cart.total)).toFixed(2)}</span>
             </div>
             <div className="cart-footer-btns">
               <button className="cart-btn-clear" onClick={clearCart} disabled={loading}>Clear</button>

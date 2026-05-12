@@ -14,7 +14,11 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [
+      'http://localhost:5173',
+      'https://pdc-project.vercel.app',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
     methods: ['GET', 'POST']
   }
 });
@@ -23,7 +27,14 @@ const io = new Server(httpServer, {
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://pdc-project.vercel.app',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean)
+}));
+
 app.use(express.json());
 
 // PDC: Show which worker handled the request
@@ -121,7 +132,15 @@ async function initializeApp() {
     }
 
     // Initialize database schema
-    await initializeDatabase();
+    try {
+      await initializeDatabase();
+    } catch (err) {
+      if (err.code === '23505') {
+        console.log('Database schema already exists, skipping...');
+      } else {
+        throw err;
+      }
+    }
 
     // ── Initialize User ID Sequence (db is ready here!) ──
     try {
@@ -163,11 +182,11 @@ const initialProducts = [
 async function initializeProducts() {
   const existingProducts = await productModel.getAllProducts();
   if (existingProducts.length === 0) {
-    console.log('📦 Initializing products...');
+    console.log('Initializing products...');
     for (const product of initialProducts) {
       await productModel.createProduct(product);
     }
-    console.log('✅ Products initialized');
+    console.log('Products initialized');
   }
 }
 

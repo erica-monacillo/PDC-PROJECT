@@ -21,7 +21,7 @@ export const getCartByUserId = async (userId) => {
   return {
     userId: cart.user_id,
     items: JSON.parse(cart.items || '[]'),
-    total: parseFloat(cart.total) || 0
+    total: parseFloat(String(cart.total)) || 0
   };
 };
 

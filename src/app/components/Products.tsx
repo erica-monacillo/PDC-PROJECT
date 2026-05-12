@@ -42,18 +42,21 @@ export function Products() {
   };
 
   const handleAddToCart = async (productId: string) => {
-    if (!isAuthenticated) { alert('Please sign in to add items to your cart'); return; }
+    if (!isAuthenticated) {
+      alert('Please sign in to add items to your cart');
+      return;
+    }
     try {
       setAddingId(productId);
       await addToCart(productId);
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Failed to add to cart');
+      console.error('Failed to add to cart:', e);
     } finally {
       setAddingId(null);
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.category)))];
+  const categories: string[] = ['all', ...(Array.from(new Set(products.map((p: any) => p.category))) as string[])];
   const filteredProducts = selectedCategory === 'all'
     ? products
     : products.filter(p => p.category === selectedCategory);
@@ -394,7 +397,7 @@ export function Products() {
 
           {/* Category filters */}
           <div className="prod-filters">
-            {categories.map(cat => (
+            {categories.map((cat: string) => (
               <button
                 key={cat}
                 className={`prod-filter-btn${selectedCategory === cat ? ' active' : ''}`}
@@ -452,7 +455,7 @@ export function Products() {
                       <div className="prod-desc">{product.description}</div>
 
                       <div className="prod-price-row">
-                        <span className="prod-price">₹{parseFloat(product.price).toFixed(2)}</span>
+                        <span className="prod-price">₹{Number(product.price).toFixed(2)}</span>
                         <span className={`prod-stock ${
                           outOfStock ? 'prod-stock-out' :
                           product.stock <= 10 ? 'prod-stock-low' :

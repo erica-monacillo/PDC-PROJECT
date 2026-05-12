@@ -4,6 +4,9 @@ import {
   Package, Truck, ClipboardList, ShoppingBag,
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { io } from 'socket.io-client';
+
+const API = import.meta.env.VITE_API_URL || 'https://pdc-project.onrender.com';
 
 interface OrderItem {
   id: string;
@@ -55,10 +58,30 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
+  // Real-time Socket.IO — live order updates
+  useEffect(() => {
+    if (!isAuthenticated || !isOpen) return;
+
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    const socket = io(API);
+    socket.emit('authenticate', token);
+
+    socket.on('orders-updated', (updatedOrders: Order[]) => {
+      const myOrders = updatedOrders
+        .filter(o => isAdmin || o.userId === user?.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setOrders(myOrders);
+    });
+
+    return () => { socket.disconnect(); };
+  }, [isAuthenticated, isOpen]);
+
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch('https://pdc-project.onrender.com/api/orders', {
+      const res = await fetch(`${API}/api/orders`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
       });
       if (res.ok) {
@@ -74,11 +97,15 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
 
   const cancelOrder = async (orderId: string) => {
     try {
-      const res = await fetch(`https://pdc-project.onrender.com/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API}/api/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
       });
-      if (res.ok) loadOrders();
+      if (res.ok) {
+        setOrders(prev =>
+          prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)
+        );
+      }
     } catch (err) {
       console.error('Error cancelling order:', err);
     }
@@ -127,14 +154,12 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
         }
         .ord-panel.open { transform: translateX(0); }
 
-        /* Top shimmer */
         .ord-shimmer {
           position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
           background: linear-gradient(90deg, transparent, rgba(245,158,11,0.45), transparent);
           pointer-events: none;
         }
 
-        /* Header */
         .ord-header {
           display: flex; align-items: center; justify-content: space-between;
           padding: 24px 24px 20px;
@@ -170,12 +195,8 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           color: rgba(255,255,255,0.5);
           cursor: pointer; transition: all 0.25s ease;
         }
-        .ord-close:hover {
-          background: rgba(255,255,255,0.08);
-          color: #fff; border-color: rgba(255,255,255,0.14);
-        }
+        .ord-close:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.14); }
 
-        /* Filter tabs */
         .ord-filters {
           display: flex; gap: 6px;
           padding: 16px 24px;
@@ -196,17 +217,9 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           cursor: pointer; transition: all 0.25s ease;
           white-space: nowrap;
         }
-        .ord-filter-btn:hover {
-          color: rgba(255,255,255,0.7);
-          background: rgba(255,255,255,0.07);
-        }
-        .ord-filter-btn.active {
-          background: rgba(245,158,11,0.1);
-          border-color: rgba(245,158,11,0.3);
-          color: rgba(245,158,11,0.9);
-        }
+        .ord-filter-btn:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
+        .ord-filter-btn.active { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: rgba(245,158,11,0.9); }
 
-        /* Scrollable body */
         .ord-body {
           flex: 1; overflow-y: auto; padding: 20px 24px;
           scrollbar-width: thin;
@@ -216,7 +229,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
         .ord-body::-webkit-scrollbar-track { background: transparent; }
         .ord-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 
-        /* Empty / loading states */
         .ord-state {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           padding: 60px 24px; gap: 12px; text-align: center;
@@ -230,10 +242,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           color: rgba(255,255,255,0.2);
           margin-bottom: 8px;
         }
-        .ord-state-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.2rem; color: rgba(255,255,255,0.7);
-        }
+        .ord-state-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: rgba(255,255,255,0.7); }
         .ord-state-sub {
           font-family: 'Josefin Sans', sans-serif;
           font-size: 11px; font-weight: 200; letter-spacing: 0.1em;
@@ -247,11 +256,8 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
           color: rgba(245,158,11,0.9); cursor: pointer; transition: all 0.25s ease;
         }
-        .ord-state-btn:hover {
-          background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.5);
-        }
+        .ord-state-btn:hover { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.5); }
 
-        /* Order card */
         .ord-card {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
@@ -260,127 +266,40 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           transition: border-color 0.25s ease;
         }
         .ord-card:hover { border-color: rgba(255,255,255,0.12); }
-
-        .ord-card-top {
-          display: flex; align-items: flex-start;
-          justify-content: space-between; gap: 12px;
-          margin-bottom: 16px;
-        }
+        .ord-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
         .ord-card-left { display: flex; align-items: center; gap: 12px; }
-        .ord-status-dot {
-          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .ord-id {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1rem; font-weight: 400; color: #faf8f4;
-        }
-        .ord-date {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 200; letter-spacing: 0.08em;
-          color: rgba(255,255,255,0.3); margin-top: 2px;
-        }
+        .ord-status-dot { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .ord-id { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: #faf8f4; }
+        .ord-date { font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 200; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); margin-top: 2px; }
         .ord-card-right { text-align: right; flex-shrink: 0; }
-        .ord-total {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.3rem; color: rgba(245,158,11,0.9);
-        }
-        .ord-item-count {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 200; letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.28); margin-top: 2px;
-        }
-        .ord-status-pill {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 4px 10px; border-radius: 100px;
-        }
+        .ord-total { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: rgba(245,158,11,0.9); }
+        .ord-item-count { font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 200; letter-spacing: 0.1em; color: rgba(255,255,255,0.28); margin-top: 2px; }
+        .ord-status-pill { display: inline-flex; align-items: center; gap: 5px; font-family: 'Josefin Sans', sans-serif; font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; }
         .ord-status-pill-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
-
-        /* Items list */
-        .ord-items {
-          border-top: 1px solid rgba(255,255,255,0.05);
-          padding-top: 14px; display: flex; flex-direction: column; gap: 10px;
-        }
-        .ord-item {
-          display: flex; align-items: center; justify-content: space-between;
-        }
+        .ord-items { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .ord-item { display: flex; align-items: center; justify-content: space-between; }
         .ord-item-left { display: flex; align-items: center; gap: 10px; }
-        .ord-item-emoji {
-          width: 32px; height: 32px; border-radius: 8px;
-          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
-          display: flex; align-items: center; justify-content: center; font-size: 16px;
-        }
-        .ord-item-name {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.75);
-        }
-        .ord-item-qty {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 200; letter-spacing: 0.08em; color: rgba(255,255,255,0.3);
-          margin-top: 1px;
-        }
-        .ord-item-price {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.6);
-        }
-
-        /* Card footer */
-        .ord-card-footer {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-top: 14px; padding-top: 14px;
-          border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .ord-delivery-note {
-          display: flex; align-items: center; gap: 6px;
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 200; letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.3);
-        }
-        .ord-cancel-btn {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 7px 14px; border-radius: 100px;
-          background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
-          color: rgba(239,68,68,0.8); cursor: pointer; transition: all 0.25s ease;
-        }
-        .ord-cancel-btn:hover {
-          background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4);
-        }
-
-        /* Admin stats */
-        .ord-admin {
-          margin-top: 8px; padding: 20px;
-          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 18px;
-        }
-        .ord-admin-title {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase;
-          color: rgba(245,158,11,0.6); margin-bottom: 16px;
-        }
+        .ord-item-emoji { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .ord-item-name { font-family: 'Josefin Sans', sans-serif; font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.75); }
+        .ord-item-qty { font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 200; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); margin-top: 1px; }
+        .ord-item-price { font-family: 'Josefin Sans', sans-serif; font-size: 12px; font-weight: 300; letter-spacing: 0.05em; color: rgba(255,255,255,0.6); }
+        .ord-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .ord-delivery-note { display: flex; align-items: center; gap: 6px; font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 200; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); }
+        .ord-cancel-btn { font-family: 'Josefin Sans', sans-serif; font-size: 9px; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase; padding: 7px 14px; border-radius: 100px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.8); cursor: pointer; transition: all 0.25s ease; }
+        .ord-cancel-btn:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); }
+        .ord-admin { margin-top: 8px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; }
+        .ord-admin-title { font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(245,158,11,0.6); margin-bottom: 16px; }
         .ord-admin-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
         .ord-admin-stat { text-align: center; }
-        .ord-admin-num {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.4rem; font-weight: 400;
-        }
-        .ord-admin-label {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 9px; font-weight: 200; letter-spacing: 0.15em; text-transform: uppercase;
-          color: rgba(255,255,255,0.3); margin-top: 2px;
-        }
+        .ord-admin-num { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; }
+        .ord-admin-label { font-family: 'Josefin Sans', sans-serif; font-size: 9px; font-weight: 200; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 2px; }
       `}</style>
 
-      {/* Backdrop */}
       <div className={`ord-backdrop${isOpen ? ' open' : ''}`} onClick={onClose} />
 
-      {/* Slide panel */}
       <div className={`ord-panel${isOpen ? ' open' : ''}`}>
         <div className="ord-shimmer" />
 
-        {/* Header */}
         <div className="ord-header">
           <div className="ord-header-left">
             <div className="ord-header-icon"><ClipboardList size={18} /></div>
@@ -392,7 +311,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           <button className="ord-close" onClick={onClose}><X size={16} /></button>
         </div>
 
-        {/* Filter tabs */}
         <div className="ord-filters">
           {filterTabs.map(tab => (
             <button
@@ -405,7 +323,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           ))}
         </div>
 
-        {/* Body */}
         <div className="ord-body">
           {!isAuthenticated ? (
             <div className="ord-state">
@@ -427,9 +344,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
               <div className="ord-state-icon"><Package size={22} /></div>
               <div className="ord-state-title">No orders found</div>
               <div className="ord-state-sub">
-                {filter === 'all'
-                  ? "You haven't placed any orders yet."
-                  : `No ${filter} orders to show.`}
+                {filter === 'all' ? "You haven't placed any orders yet." : `No ${filter} orders to show.`}
               </div>
               {filter !== 'all' && (
                 <button className="ord-state-btn" onClick={() => setFilter('all')}>View All</button>
@@ -442,13 +357,9 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                 const StatusIcon = cfg.icon;
                 return (
                   <div key={order.id} className="ord-card">
-                    {/* Top row */}
                     <div className="ord-card-top">
                       <div className="ord-card-left">
-                        <div
-                          className="ord-status-dot"
-                          style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
-                        >
+                        <div className="ord-status-dot" style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>
                           <StatusIcon size={16} />
                         </div>
                         <div>
@@ -459,41 +370,33 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                         </div>
                       </div>
                       <div className="ord-card-right">
-                        <div className="ord-total">₹{parseFloat(order.totalPrice ?? 0).toFixed(2) ?? '0.00'}</div>
+                        <div className="ord-total">₹{parseFloat(String(order.totalPrice ?? 0)).toFixed(2)}</div>
                         <div className="ord-item-count">{order.items?.length ?? 0} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}</div>
                       </div>
                     </div>
 
-                    {/* Status pill */}
                     <div style={{ marginBottom: 14 }}>
-                      <span
-                        className="ord-status-pill"
-                        style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
-                      >
+                      <span className="ord-status-pill" style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>
                         <span className="ord-status-pill-dot" />
                         {cfg.label}
                       </span>
                     </div>
 
-                    {/* Items */}
                     <div className="ord-items">
                       {order.items?.map((item, i) => (
                         <div key={i} className="ord-item">
                           <div className="ord-item-left">
-                            <div className="ord-item-emoji">
-                              {categoryEmoji[item.category] ?? '🍬'}
-                            </div>
+                            <div className="ord-item-emoji">{categoryEmoji[item.category] ?? '🍬'}</div>
                             <div>
                               <div className="ord-item-name">{item.name}</div>
                               <div className="ord-item-qty">Qty: {item.quantity}</div>
                             </div>
                           </div>
-                          <div className="ord-item-price">₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
+                          <div className="ord-item-price">₹{(parseFloat(String(item.price)) * item.quantity).toFixed(2)}</div>
                         </div>
                       ))}
                     </div>
 
-                    {/* Footer */}
                     <div className="ord-card-footer">
                       <div className="ord-delivery-note">
                         {order.status === 'pending' && <><Clock size={12} /> Processing soon</>}
@@ -502,16 +405,13 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                         {order.status === 'cancelled' && <><AlertCircle size={12} /> Cancelled</>}
                       </div>
                       {order.status === 'pending' && (
-                        <button className="ord-cancel-btn" onClick={() => cancelOrder(order.id)}>
-                          Cancel
-                        </button>
+                        <button className="ord-cancel-btn" onClick={() => cancelOrder(order.id)}>Cancel</button>
                       )}
                     </div>
                   </div>
                 );
               })}
 
-              {/* Admin stats */}
               {isAdmin && (
                 <div className="ord-admin">
                   <div className="ord-admin-title">Admin Overview</div>
@@ -521,21 +421,15 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                       <div className="ord-admin-label">Total</div>
                     </div>
                     <div className="ord-admin-stat">
-                      <div className="ord-admin-num" style={{ color: 'rgba(52,211,153,0.9)' }}>
-                        {orders.filter(o => o.status === 'completed').length}
-                      </div>
+                      <div className="ord-admin-num" style={{ color: 'rgba(52,211,153,0.9)' }}>{orders.filter(o => o.status === 'completed').length}</div>
                       <div className="ord-admin-label">Done</div>
                     </div>
                     <div className="ord-admin-stat">
-                      <div className="ord-admin-num" style={{ color: 'rgba(99,179,237,0.9)' }}>
-                        {orders.filter(o => o.status === 'processing').length}
-                      </div>
+                      <div className="ord-admin-num" style={{ color: 'rgba(99,179,237,0.9)' }}>{orders.filter(o => o.status === 'processing').length}</div>
                       <div className="ord-admin-label">Active</div>
                     </div>
                     <div className="ord-admin-stat">
-                      <div className="ord-admin-num" style={{ color: 'rgba(239,68,68,0.9)' }}>
-                        {orders.filter(o => o.status === 'cancelled').length}
-                      </div>
+                      <div className="ord-admin-num" style={{ color: 'rgba(239,68,68,0.9)' }}>{orders.filter(o => o.status === 'cancelled').length}</div>
                       <div className="ord-admin-label">Cancelled</div>
                     </div>
                   </div>
