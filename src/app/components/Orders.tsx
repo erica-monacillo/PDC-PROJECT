@@ -86,8 +86,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
       });
       if (res.ok) {
         const data: Order[] = await res.json();
-        console.log('loaded orders:', data);
-        console.log('current user:', user);
         setOrders(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       }
     } catch (err) {
