@@ -70,7 +70,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
 
     socket.on('orders-updated', (updatedOrders: Order[]) => {
       const myOrders = updatedOrders
-        .filter(o => isAdmin || o.userId === user?.id)
+        .filter(o => isAdmin || o.userId === user?.id || (o as any).user_id === user?.id)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setOrders(myOrders);
     });
@@ -86,6 +86,8 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
       });
       if (res.ok) {
         const data: Order[] = await res.json();
+        console.log('loaded orders:', data);
+        console.log('current user:', user);
         setOrders(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       }
     } catch (err) {
