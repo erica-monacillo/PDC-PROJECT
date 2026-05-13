@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -16,6 +19,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       'http://localhost:5173',
+      'http://localhost:5174',
       'https://pdc-project.vercel.app',
       process.env.FRONTEND_URL,
     ].filter(Boolean),
@@ -26,13 +30,14 @@ const io = new Server(httpServer, {
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-// Middleware
 app.use(cors({
   origin: [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://pdc-project.vercel.app',
     process.env.FRONTEND_URL,
-  ].filter(Boolean)
+  ].filter(Boolean),
+  credentials: true
 }));
 
 app.use(express.json());
@@ -637,7 +642,7 @@ app.put('/api/orders/:orderId/status', authenticateToken, requireRole('admin'), 
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+    const validStatuses = ['pending', 'processing', 'delivering', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }

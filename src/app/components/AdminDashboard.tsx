@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { io, Socket } from 'socket.io-client';
 
 const API = import.meta.env.VITE_API_URL || 'https://pdc-project.onrender.com';
+
+type OrderStatus = 'pending' | 'processing' | 'delivering' | 'completed' | 'cancelled';
 
 interface Order {
   id: string;
@@ -23,273 +26,656 @@ interface Order {
     quantity: number;
   }>;
   totalPrice: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: OrderStatus;
   createdAt: string;
   updatedAt: string;
 }
 
+const STATUS_FLOW: OrderStatus[] = ['pending', 'processing', 'delivering', 'completed'];
+
+const STATUS_META: Record<OrderStatus, { label: string; color: string; bg: string; dot: string }> = {
+  pending:    { label: 'Pending',    color: '#92400e', bg: '#fef3c7', dot: '#f59e0b' },
+  processing: { label: 'Processing', color: '#1e40af', bg: '#dbeafe', dot: '#3b82f6' },
+  delivering: { label: 'Delivering', color: '#065f46', bg: '#d1fae5', dot: '#10b981' },
+  completed:  { label: 'Completed',  color: '#14532d', bg: '#bbf7d0', dot: '#22c55e' },
+  cancelled:  { label: 'Cancelled',  color: '#7f1d1d', bg: '#fee2e2', dot: '#ef4444' },
+};
+
 export default function AdminDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  useEffect(() => {
-    if (user?.role === 'admin') {
-      fetchOrders();
-    }
-  }, [user, token]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/api/admin/orders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const res = await fetch(`${API}/api/admin/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setOrders(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
+      if (res.ok) setOrders(await res.json());
+    } catch (e) {
+      console.error('Failed to fetch orders:', e);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+    fetchOrders();
+
+    const s = io(API, { transports: ['websocket'] });
+    setSocket(s);
+
+    s.on('connect', () => s.emit('authenticate', token));
+    s.on('orders-updated', (updated: Order[]) => setOrders(updated));
+
+    return () => { s.disconnect(); };
+  }, [user, token, fetchOrders]);
+
+  const updateStatus = async (orderId: string, status: OrderStatus) => {
+    setUpdating(orderId);
     try {
-      const response = await fetch(`${API}/api/orders/${orderId}/status`, {
+      const res = await fetch(`${API}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status }),
       });
-
-      if (response.ok) {
-        // Update local state instantly without refetching
+      if (res.ok) {
         setOrders(prev =>
-          prev.map(o => o.id === orderId ? { ...o, status: status as Order['status'] } : o)
+          prev.map(o => o.id === orderId ? { ...o, status } : o)
         );
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder(prev => prev ? { ...prev, status: status as Order['status'] } : null);
-        }
       }
-    } catch (error) {
-      console.error('Failed to update order status:', error);
+    } catch (e) {
+      console.error('Failed to update status:', e);
+    } finally {
+      setUpdating(null);
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true;
-    return order.status === filter;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const counts = {
+    all: orders.length,
+    pending: orders.filter(o => o.status === 'pending').length,
+    processing: orders.filter(o => o.status === 'processing').length,
+    delivering: orders.filter(o => o.status === 'delivering').length,
+    completed: orders.filter(o => o.status === 'completed').length,
+    cancelled: orders.filter(o => o.status === 'cancelled').length,
   };
+
+  const filtered = orders.filter(o => filter === 'all' || o.status === filter);
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You need admin privileges to access this page.</p>
-        </div>
+      <div style={styles.center}>
+        <h2 style={{ color: '#1a1a1a', fontFamily: 'Georgia, serif' }}>Access Denied</h2>
+        <p style={{ color: '#6b7280' }}>Admin privileges required.</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+      <div style={styles.center}>
+        <div style={styles.spinner} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
+    <div style={styles.page}>
+      <div style={styles.container}>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-gray-900">{orders.length}</div>
-              <div className="text-gray-600">Total Orders</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-yellow-600">
-                {orders.filter(o => o.status === 'pending').length}
-              </div>
-              <div className="text-gray-600">Pending</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-blue-600">
-                {orders.filter(o => o.status === 'processing').length}
-              </div>
-              <div className="text-gray-600">Processing</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-green-600">
-                {orders.filter(o => o.status === 'completed').length}
-              </div>
-              <div className="text-gray-600">Completed</div>
+        {/* Header */}
+        <div style={styles.header}>
+          <div>
+            <h1 style={styles.title}>Admin Dashboard</h1>
+            <p style={styles.subtitle}>Manage and track all customer orders</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={styles.liveIndicator}>
+              <span style={{ ...styles.liveDot, background: socket?.connected ? '#22c55e' : '#ef4444' }} />
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                {socket?.connected ? 'Live' : 'Offline'}
+              </span>
+              <span style={{ color: '#e5e7eb', margin: '0 4px' }}>|</span>
+              <button
+                onClick={logout}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ef4444',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Filter */}
-          <div className="mb-6">
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+        {/* Stat Cards */}
+        <div style={styles.statsGrid}>
+          {([
+            { key: 'all',        label: 'Total Orders', accent: '#1a1a1a' },
+            { key: 'pending',    label: 'Pending',      accent: '#f59e0b' },
+            { key: 'processing', label: 'Processing',   accent: '#3b82f6' },
+            { key: 'delivering', label: 'Delivering',   accent: '#10b981' },
+            { key: 'completed',  label: 'Completed',    accent: '#22c55e' },
+            { key: 'cancelled',  label: 'Cancelled',    accent: '#ef4444' },
+          ] as const).map(({ key, label, accent }) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              style={{
+                ...styles.statCard,
+                borderColor: filter === key ? accent : '#e5e7eb',
+                boxShadow: filter === key ? `0 0 0 2px ${accent}22` : 'none',
+              }}
             >
-              <option value="all">All Orders</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
+              <div style={{ ...styles.statNumber, color: accent }}>
+                {counts[key]}
+              </div>
+              <div style={styles.statLabel}>{label}</div>
+              {filter === key && <div style={{ ...styles.statBar, background: accent }} />}
+            </button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Orders List */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Orders</h2>
-            </div>
-            <div className="max-h-96 overflow-y-auto">
-              {filteredOrders.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">
-                  No orders found
-                </div>
-              ) : (
-                filteredOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
-                      selectedOrder?.id === order.id ? 'bg-amber-50' : ''
-                    }`}
-                    onClick={() => setSelectedOrder(order)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-semibold text-gray-900">{order.id}</div>
-                        <div className="text-sm text-gray-600">
-                          {order.customerInfo.name} • {new Date(order.createdAt).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          ₹{Number(order.totalPrice).toFixed(2)} • {order.items.length} items
-                        </div>
-                      </div>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+        {/* Orders Section */}
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>
+              Orders
+              <span style={styles.sectionCount}>{filtered.length}</span>
+            </h2>
           </div>
 
-          {/* Order Details */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Order Details</h2>
+          {filtered.length === 0 ? (
+            <div style={styles.empty}>No orders in this category</div>
+          ) : (
+            <div style={styles.orderList}>
+              {filtered.map(order => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  expanded={expandedId === order.id}
+                  updating={updating === order.id}
+                  onToggle={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                  onUpdateStatus={updateStatus}
+                />
+              ))}
             </div>
-            <div className="p-6">
-              {selectedOrder ? (
-                <div className="space-y-6">
-                  {/* Order Info */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Order #{selectedOrder.id}</h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div>Status: <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>{selectedOrder.status}</span></div>
-                      <div>Created: {new Date(selectedOrder.createdAt).toLocaleString()}</div>
-                      <div>Total: ₹{Number(selectedOrder.totalPrice).toFixed(2)}</div>
-                    </div>
-                  </div>
-
-                  {/* Customer Info */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Customer Information</h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div><strong>Name:</strong> {selectedOrder.customerInfo.name}</div>
-                      <div><strong>Email:</strong> {selectedOrder.customerInfo.email}</div>
-                      <div><strong>Phone:</strong> {selectedOrder.customerInfo.phone}</div>
-                      <div><strong>Address:</strong> {selectedOrder.customerInfo.address}</div>
-                      <div><strong>City:</strong> {selectedOrder.customerInfo.city}, {selectedOrder.customerInfo.state} {selectedOrder.customerInfo.zipCode}</div>
-                      {selectedOrder.customerInfo.deliveryInstructions && (
-                        <div><strong>Delivery Instructions:</strong> {selectedOrder.customerInfo.deliveryInstructions}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Order Items */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Items</h3>
-                    <div className="space-y-2">
-                      {selectedOrder.items.map((item, index) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span>{item.name} × {item.quantity}</span>
-                          <span>₹{(Number(item.price) * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  {selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' && (
-                    <div className="flex gap-2 pt-4 border-t">
-                      {selectedOrder.status === 'pending' && (
-                        <button
-                          onClick={() => updateOrderStatus(selectedOrder.id, 'processing')}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition"
-                        >
-                          Start Processing
-                        </button>
-                      )}
-                      {selectedOrder.status === 'processing' && (
-                        <button
-                          onClick={() => updateOrderStatus(selectedOrder.id, 'completed')}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold transition"
-                        >
-                          Mark Complete
-                        </button>
-                      )}
-                      <button
-                        onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold transition"
-                      >
-                        Cancel Order
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 py-8">
-                  Select an order to view details
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
+
       </div>
     </div>
   );
 }
+
+function OrderCard({
+  order,
+  expanded,
+  updating,
+  onToggle,
+  onUpdateStatus,
+}: {
+  order: Order;
+  expanded: boolean;
+  updating: boolean;
+  onToggle: () => void;
+  onUpdateStatus: (id: string, status: OrderStatus) => void;
+}) {
+  const meta = STATUS_META[order.status];
+  const currentIdx = STATUS_FLOW.indexOf(order.status);
+  const isCancelled = order.status === 'cancelled';
+  const isCompleted = order.status === 'completed';
+
+  return (
+    <div style={{ ...styles.orderCard, borderColor: expanded ? '#d1d5db' : '#f3f4f6' }}>
+
+      {/* Order Row */}
+      <button style={styles.orderRow} onClick={onToggle}>
+        <div style={styles.orderLeft}>
+          <span style={styles.orderId}>{order.id}</span>
+          <span style={styles.orderMeta}>
+            {order.customerInfo.name} · {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+          <span style={styles.orderMeta}>
+            {order.items.length} item{order.items.length !== 1 ? 's' : ''} · ₹{Number(order.totalPrice).toFixed(2)}
+          </span>
+        </div>
+        <div style={styles.orderRight}>
+          <span style={{ ...styles.badge, color: meta.color, background: meta.bg }}>
+            <span style={{ ...styles.badgeDot, background: meta.dot }} />
+            {meta.label}
+          </span>
+          <svg
+            width="16" height="16" viewBox="0 0 16 16" fill="none"
+            style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#9ca3af' }}
+          >
+            <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </button>
+
+      {/* Expanded Details */}
+      {expanded && (
+        <div style={styles.expandedBody}>
+
+          {/* Progress Bar */}
+          {!isCancelled && (
+            <div style={styles.progressSection}>
+              <div style={styles.progressTrack}>
+                {STATUS_FLOW.map((s, i) => {
+                  const done = i <= currentIdx;
+                  const active = i === currentIdx;
+                  return (
+                    <React.Fragment key={s}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                        <div style={{
+                          ...styles.progressDot,
+                          background: done ? '#1a1a1a' : '#e5e7eb',
+                          border: active ? '2px solid #1a1a1a' : '2px solid transparent',
+                          boxShadow: active ? '0 0 0 3px #1a1a1a22' : 'none',
+                        }} />
+                        <span style={{ fontSize: 11, color: done ? '#1a1a1a' : '#9ca3af', fontWeight: done ? 500 : 400 }}>
+                          {STATUS_META[s].label}
+                        </span>
+                      </div>
+                      {i < STATUS_FLOW.length - 1 && (
+                        <div style={{ ...styles.progressLine, background: i < currentIdx ? '#1a1a1a' : '#e5e7eb' }} />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Two Column Layout */}
+          <div style={styles.detailsGrid}>
+
+            {/* Customer Info */}
+            <div style={styles.detailBox}>
+              <h4 style={styles.detailTitle}>Customer</h4>
+              <div style={styles.detailRow}><span style={styles.detailKey}>Name</span><span style={styles.detailVal}>{order.customerInfo.name}</span></div>
+              <div style={styles.detailRow}><span style={styles.detailKey}>Email</span><span style={styles.detailVal}>{order.customerInfo.email}</span></div>
+              <div style={styles.detailRow}><span style={styles.detailKey}>Phone</span><span style={styles.detailVal}>{order.customerInfo.phone}</span></div>
+              <div style={styles.detailRow}><span style={styles.detailKey}>Address</span><span style={styles.detailVal}>{order.customerInfo.address}, {order.customerInfo.city}, {order.customerInfo.state} {order.customerInfo.zipCode}</span></div>
+              {order.customerInfo.deliveryInstructions && (
+                <div style={styles.detailRow}><span style={styles.detailKey}>Note</span><span style={styles.detailVal}>{order.customerInfo.deliveryInstructions}</span></div>
+              )}
+            </div>
+
+            {/* Items */}
+            <div style={styles.detailBox}>
+              <h4 style={styles.detailTitle}>Items</h4>
+              {order.items.map((item, i) => (
+                <div key={i} style={styles.itemRow}>
+                  <span style={styles.itemName}>{item.name} <span style={{ color: '#9ca3af' }}>×{item.quantity}</span></span>
+                  <span style={styles.itemPrice}>₹{(Number(item.price) * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+              <div style={styles.itemTotal}>
+                <span style={{ fontWeight: 600 }}>Total</span>
+                <span style={{ fontWeight: 600 }}>₹{Number(order.totalPrice).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Buttons */}
+          {!isCompleted && !isCancelled && (
+            <div style={styles.actionRow}>
+              {STATUS_FLOW.map((s, i) => {
+                const isPast = i < currentIdx;
+                const isCurrent = i === currentIdx;
+                const isFuture = i > currentIdx;
+                const isNext = i === currentIdx + 1;
+
+                let btnStyle = { ...styles.statusBtn };
+                if (isCurrent) {
+                  btnStyle = { ...btnStyle, background: '#16a34a', color: '#fff', borderColor: '#16a34a' };
+                } else if (isPast) {
+                  btnStyle = { ...btnStyle, background: '#f3f4f6', color: '#9ca3af', borderColor: '#e5e7eb', cursor: 'default' };
+                } else if (isNext) {
+                  btnStyle = { ...btnStyle, background: '#fff', color: '#1a1a1a', borderColor: '#1a1a1a', cursor: 'pointer' };
+                } else {
+                  btnStyle = { ...btnStyle, background: '#f9fafb', color: '#d1d5db', borderColor: '#e5e7eb', cursor: 'not-allowed' };
+                }
+
+                return (
+                  <button
+                    key={s}
+                    style={btnStyle}
+                    disabled={!isNext || updating}
+                    onClick={() => isNext && onUpdateStatus(order.id, s)}
+                    title={isNext ? `Move to ${STATUS_META[s].label}` : undefined}
+                  >
+                    {isPast && <span style={{ marginRight: 4 }}>✓</span>}
+                    {updating && isNext ? '...' : STATUS_META[s].label}
+                  </button>
+                );
+              })}
+
+              <button
+                style={{ ...styles.statusBtn, background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', marginLeft: 'auto' }}
+                onClick={() => onUpdateStatus(order.id, 'cancelled')}
+                disabled={updating}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {(isCompleted || isCancelled) && (
+            <div style={{ ...styles.finalBadge, background: isCancelled ? '#fef2f2' : '#f0fdf4', color: isCancelled ? '#dc2626' : '#16a34a' }}>
+              {isCancelled ? '✕ Order Cancelled' : '✓ Order Completed'}
+            </div>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  page: {
+    minHeight: '100vh',
+    background: '#f9fafb',
+    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  },
+  container: {
+    maxWidth: 1100,
+    margin: '0 auto',
+    padding: '32px 24px',
+  },
+  center: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  spinner: {
+    width: 36,
+    height: 36,
+    border: '3px solid #e5e7eb',
+    borderTop: '3px solid #1a1a1a',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: '#111827',
+    margin: 0,
+    letterSpacing: '-0.5px',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    margin: '4px 0 0',
+  },
+  liveIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 12px',
+    background: '#fff',
+    border: '1px solid #e5e7eb',
+    borderRadius: 20,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gap: 12,
+    marginBottom: 32,
+  },
+  statCard: {
+    position: 'relative',
+    background: '#fff',
+    border: '1.5px solid',
+    borderRadius: 12,
+    padding: '16px 12px',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.15s',
+    overflow: 'hidden',
+  },
+  statNumber: {
+    fontSize: 26,
+    fontWeight: 700,
+    lineHeight: 1,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: 500,
+  },
+  statBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    borderRadius: '0 0 12px 12px',
+  },
+  section: {
+    background: '#fff',
+    borderRadius: 16,
+    border: '1px solid #e5e7eb',
+    overflow: 'hidden',
+  },
+  sectionHeader: {
+    padding: '20px 24px',
+    borderBottom: '1px solid #f3f4f6',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#111827',
+    margin: 0,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionCount: {
+    fontSize: 12,
+    background: '#f3f4f6',
+    color: '#6b7280',
+    padding: '2px 8px',
+    borderRadius: 20,
+    fontWeight: 500,
+  },
+  empty: {
+    padding: '48px 24px',
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: 14,
+  },
+  orderList: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  orderCard: {
+    borderBottom: '1px solid #f3f4f6',
+    border: '1px solid',
+    borderRadius: 0,
+    transition: 'border-color 0.15s',
+  },
+  orderRow: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 24px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left',
+    gap: 16,
+  },
+  orderLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+  },
+  orderId: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#111827',
+    fontFamily: 'monospace',
+  },
+  orderMeta: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  orderRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 0,
+  },
+  badge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    padding: '4px 10px',
+    borderRadius: 20,
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+  },
+  expandedBody: {
+    padding: '0 24px 24px',
+    borderTop: '1px solid #f3f4f6',
+  },
+  progressSection: {
+    padding: '24px 0 20px',
+  },
+  progressTrack: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 0,
+  },
+  progressDot: {
+    width: 14,
+    height: 14,
+    borderRadius: '50%',
+    transition: 'all 0.2s',
+    flexShrink: 0,
+  },
+  progressLine: {
+    flex: 1,
+    height: 2,
+    marginTop: 6,
+    transition: 'background 0.2s',
+  },
+  detailsGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 16,
+    marginBottom: 20,
+  },
+  detailBox: {
+    background: '#f9fafb',
+    borderRadius: 10,
+    padding: '14px 16px',
+  },
+  detailTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#9ca3af',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    margin: '0 0 10px',
+  },
+  detailRow: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 6,
+    fontSize: 13,
+  },
+  detailKey: {
+    color: '#6b7280',
+    minWidth: 56,
+    flexShrink: 0,
+  },
+  detailVal: {
+    color: '#111827',
+    fontWeight: 500,
+  },
+  itemRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: 13,
+    marginBottom: 6,
+    color: '#374151',
+  },
+  itemName: {
+    color: '#111827',
+  },
+  itemPrice: {
+    fontWeight: 500,
+    color: '#111827',
+  },
+  itemTotal: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: 13,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTop: '1px solid #e5e7eb',
+    color: '#111827',
+  },
+  actionRow: {
+    display: 'flex',
+    gap: 8,
+    flexWrap: 'wrap' as const,
+    alignItems: 'center',
+  },
+  statusBtn: {
+    padding: '8px 16px',
+    borderRadius: 8,
+    fontSize: 13,
+    fontWeight: 500,
+    border: '1.5px solid',
+    transition: 'all 0.15s',
+    cursor: 'pointer',
+  },
+  finalBadge: {
+    padding: '12px 16px',
+    borderRadius: 10,
+    fontSize: 14,
+    fontWeight: 600,
+    textAlign: 'center' as const,
+  },
+};
