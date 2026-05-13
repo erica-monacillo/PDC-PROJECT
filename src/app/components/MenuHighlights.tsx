@@ -48,6 +48,15 @@ const menuItems = [
     image: 'https://images.unsplash.com/photo-1758910536889-43ce7b3199fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBzd2VldHMlMjBzaG9wJTIwZGlzcGxheXxlbnwxfHx8fDE3NzI1MjAwMTN8MA&ixlib=rb-4.1.0&q=80&w=1080',
     popular: false
   },
+  {
+    id: 5,
+    name: 'Motichoor Ladoo',
+    nameHindi: 'मोतीचूर लादू',
+    description: 'Delicious, sweet, and traditional Indian sweets',
+    price: '₹70/kg',
+    image: 'https://www.ruchiskitchen.com/wp-content/uploads/2016/03/Motichoor-Ladoo-Recipe-5.jpg',
+    popular: false
+  },
 ];
 
 export function MenuHighlights() {

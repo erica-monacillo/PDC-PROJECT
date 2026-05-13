@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ShoppingCart, Star } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
@@ -13,45 +13,133 @@ interface Product {
   stock: number;
 }
 
-const unsplashFallback: Record<string, string> = {
-  cakes:
-    'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
-  pastries:
-    'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80',
-  traditional:
-    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80',
-  default:
-    'https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400&q=80',
-};
+const productsData: Product[] = [
+  {
+    id: '1',
+    name: 'Gulab Jamun',
+    price: 120,
+    description: 'Soft milk-solid balls soaked in rose sugar syrup.',
+    category: 'traditional',
+    image:
+    'https://www.cadburydessertscorner.com/hs-fs/hubfs/dc-website-2022/articles/soft-gulab-jamun-recipe-for-raksha-bandhan-from-dough-to-syrup-all-you-need-to-know/soft-gulab-jamun-recipe-for-raksha-bandhan-from-dough-to-syrup-all-you-need-to-know.webp?width=1920&height=464&name=soft-gulab-jamun-recipe-for-raksha-bandhan-from-dough-to-syrup-all-you-need-to-know.webp',
+    stock: 25,
+  },
+  {
+    id: '2',
+    name: 'Rasgulla',
+    price: 140,
+    description: 'Spongy Bengali sweet made from fresh chenna.',
+    category: 'snacks',
+    image:
+      'https://images.unsplash.com/photo-1666190092159-3171cf0fbb12?w=500&q=80',
+    stock: 18,
+  },
+  {
+    id: '3',
+    name: 'Kaju Katli',
+    price: 220,
+    description: 'Premium cashew fudge topped with silver leaf.',
+    category: 'traditional',
+    image:
+      'https://rashmisweets.in/wp-content/uploads/2024/07/Kaju-Katli.png',
+    stock: 15,
+  },
+  {
+    id: '4',
+    name: 'Motichoor Laddu',
+    price: 160,
+    description: 'Traditional festive laddus made with fine boondi.',
+    category: 'sweets',
+    image:
+    'https://www.cookwithkushi.com/wp-content/uploads/2022/10/best_motichur_laddu_motichoor_ladoo_recipe.jpg',
+    stock: 30,
+  },
+  {
+    id: '5',
+    name: 'Jalebi',
+    price: 100,
+    description: 'Crispy spiral sweets dipped in saffron syrup.',
+    category: 'traditional',
+    image:
+    'https://i0.wp.com/binjalsvegkitchen.com/wp-content/uploads/2023/10/Instant-Jalebi-H1.jpg?fit=600%2C904&ssl=1',
+    stock: 20,
+  },
+  {
+    id: '6',
+    name: 'Milk Cake',
+    price: 180,
+    description: 'Rich and creamy milk-based Indian dessert.',
+    category: 'Cakes',
+    image:
+      'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=500&q=80',
+    stock: 12,
+  },
+  {
+    id: '7',
+    name: 'Chocolate Pastry',
+    price: 90,
+    description: 'Fresh chocolate layered pastry topped with cream.',
+    category: 'pastries',
+    image:
+      'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80',
+    stock: 14,
+  },
+  {
+    id: '8',
+    name: 'Black Forest Cake',
+    price: 650,
+    description: 'Classic chocolate cake with cherries and cream.',
+    category: 'cakes',
+    image:
+      'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&q=80',
+    stock: 8,
+  },
+  {
+    id: '9',
+    name: 'Pineapple Cake',
+    price: 580,
+    description: 'Light vanilla sponge with pineapple filling.',
+    category: 'cakes',
+    image:
+      'https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=500&q=80',
+    stock: 10,
+  },
+  {
+    id: '10',
+    name: 'Samosa',
+    price: 40,
+    description: 'Crispy pastry stuffed with spicy potato filling.',
+    category: 'snacks',
+    image:
+    'https://www.finedininglovers.com/sites/default/files/2026-02/vegetable-samosa.jpg',
+    stock: 35,
+  },
+];
 
 export function Products() {
   const { isAuthenticated } = useAuth();
   const { addToCart, loading } = useCart();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState('all');
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  const [addingId, setAddingId] = useState<string | null>(
+    null
+  );
 
-  const loadProducts = async () => {
-    try {
-      const res = await fetch(
-        'https://pdc-project.onrender.com/api/products'
-      );
+  const categories = [
+    'all',
+    ...Array.from(
+      new Set(productsData.map((p) => p.category))
+    ),
+  ];
 
-      if (res.ok) {
-        setProducts(await res.json());
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingProducts(false);
-    }
-  };
+  const filteredProducts =
+    selectedCategory === 'all'
+      ? productsData
+      : productsData.filter(
+          (p) => p.category === selectedCategory
+        );
 
   const handleAddToCart = async (productId: string) => {
     if (!isAuthenticated) {
@@ -69,35 +157,29 @@ export function Products() {
     }
   };
 
-  const categories = [
-    'all',
-    ...(Array.from(
-      new Set(products.map((p) => p.category))
-    ) as string[]),
-  ];
-
-  const filteredProducts =
-    selectedCategory === 'all'
-      ? products
-      : products.filter(
-          (p) => p.category === selectedCategory
-        );
-
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          font-family: 'Poppins', sans-serif;
+          background: #fff;
+        }
 
         .products-section {
-          padding: 90px 20px;
-          background: #fffdf8;
-          font-family: 'Poppins', sans-serif;
-          min-height: 100vh;
+          padding: 80px 20px;
+          background: #fffdf9;
         }
 
         .products-container {
           max-width: 1200px;
-          margin: 0 auto;
+          margin: auto;
         }
 
         .products-header {
@@ -106,38 +188,38 @@ export function Products() {
         }
 
         .products-title {
-          font-size: clamp(2rem, 4vw, 3rem);
-          font-weight: 600;
+          font-size: 42px;
+          font-weight: 700;
           color: #222;
           margin-bottom: 10px;
         }
 
         .products-subtitle {
-          font-size: 15px;
           color: #777;
+          font-size: 15px;
         }
 
         .category-filters {
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
-          gap: 10px;
+          gap: 12px;
           margin-bottom: 40px;
         }
 
         .filter-btn {
+          border: none;
+          background: #fff;
+          border: 1px solid #eee;
           padding: 10px 18px;
           border-radius: 999px;
-          border: 1px solid #f1e8dc;
-          background: white;
-          color: #555;
           cursor: pointer;
           font-size: 13px;
           transition: 0.3s ease;
         }
 
-        .filter-btn:hover,
-        .filter-btn.active {
+        .filter-btn.active,
+        .filter-btn:hover {
           background: #f59e0b;
           color: white;
           border-color: #f59e0b;
@@ -145,39 +227,21 @@ export function Products() {
 
         .products-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-        }
-
-        @media (max-width: 1100px) {
-          .products-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .products-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 500px) {
-          .products-grid {
-            grid-template-columns: 1fr;
-          }
+          grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+          gap: 24px;
         }
 
         .product-card {
           background: white;
-          border: 1px solid #f1e8dc;
           border-radius: 18px;
           overflow: hidden;
+          border: 1px solid #f2f2f2;
           transition: 0.3s ease;
         }
 
         .product-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
         .product-image-wrapper {
@@ -190,11 +254,6 @@ export function Products() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: 0.4s ease;
-        }
-
-        .product-card:hover .product-image {
-          transform: scale(1.04);
         }
 
         .category-badge {
@@ -202,24 +261,23 @@ export function Products() {
           top: 12px;
           left: 12px;
           background: white;
-          padding: 5px 10px;
+          padding: 6px 12px;
           border-radius: 999px;
           font-size: 11px;
-          color: #555;
+          text-transform: capitalize;
         }
 
         .rating-badge {
           position: absolute;
           top: 12px;
           right: 12px;
+          background: white;
+          padding: 6px 10px;
+          border-radius: 999px;
           display: flex;
           align-items: center;
           gap: 4px;
-          background: white;
-          padding: 5px 10px;
-          border-radius: 999px;
           font-size: 11px;
-          color: #555;
         }
 
         .product-body {
@@ -227,7 +285,7 @@ export function Products() {
         }
 
         .product-name {
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 600;
           color: #222;
           margin-bottom: 8px;
@@ -237,57 +295,54 @@ export function Products() {
           font-size: 13px;
           color: #666;
           line-height: 1.7;
-          margin-bottom: 16px;
+          margin-bottom: 18px;
         }
 
         .product-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
+          margin-bottom: 18px;
         }
 
         .product-price {
-          font-size: 22px;
-          font-weight: 600;
+          font-size: 24px;
+          font-weight: 700;
           color: #f59e0b;
         }
 
         .stock-badge {
-          padding: 5px 10px;
-          border-radius: 999px;
           font-size: 11px;
-        }
-
-        .in-stock {
+          padding: 6px 10px;
+          border-radius: 999px;
           background: #ecfdf5;
           color: #047857;
         }
 
         .low-stock {
-          background: #fffbeb;
-          color: #b45309;
+          background: #fef3c7;
+          color: #92400e;
         }
 
         .out-stock {
-          background: #fef2f2;
+          background: #fee2e2;
           color: #b91c1c;
         }
 
         .cart-btn {
           width: 100%;
-          padding: 12px;
           border: none;
-          border-radius: 12px;
           background: #f59e0b;
           color: white;
-          font-size: 13px;
+          padding: 13px;
+          border-radius: 12px;
+          font-size: 14px;
           font-weight: 500;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          cursor: pointer;
           transition: 0.3s ease;
         }
 
@@ -296,47 +351,38 @@ export function Products() {
         }
 
         .cart-btn:disabled {
-          background: #d1d5db;
+          opacity: 0.6;
           cursor: not-allowed;
-        }
-
-        .loading-wrapper,
-        .empty-wrapper {
-          text-align: center;
-          padding: 80px 20px;
-          color: #777;
         }
 
         .signin-box {
           margin-top: 60px;
+          text-align: center;
           background: white;
-          border: 1px solid #f1e8dc;
           border-radius: 20px;
           padding: 40px 20px;
-          text-align: center;
+          border: 1px solid #f2f2f2;
         }
 
         .signin-title {
           font-size: 28px;
-          font-weight: 600;
-          color: #222;
+          font-weight: 700;
           margin-bottom: 10px;
         }
 
         .signin-text {
-          font-size: 14px;
           color: #777;
           margin-bottom: 24px;
         }
 
         .signin-btn {
-          padding: 14px 28px;
-          border-radius: 999px;
           border: none;
           background: #f59e0b;
           color: white;
-          font-size: 14px;
+          padding: 14px 28px;
+          border-radius: 999px;
           cursor: pointer;
+          font-size: 14px;
           transition: 0.3s ease;
         }
 
@@ -350,19 +396,17 @@ export function Products() {
         className="products-section"
       >
         <div className="products-container">
-
-          {/* Header */}
           <div className="products-header">
             <h2 className="products-title">
-              Our Sweet Delights
+              Indian Sweets & Bakery
             </h2>
 
             <p className="products-subtitle">
-              Freshly prepared sweets and bakery favorites.
+              Traditional Indian sweets freshly made every
+              day.
             </p>
           </div>
 
-          {/* Filters */}
           <div className="category-filters">
             {categories.map((cat) => (
               <button
@@ -376,167 +420,125 @@ export function Products() {
                   setSelectedCategory(cat)
                 }
               >
-                {cat.charAt(0).toUpperCase() +
-                  cat.slice(1)}
+                {cat}
               </button>
             ))}
           </div>
 
-          {/* Loading */}
-          {loadingProducts ? (
-            <div className="loading-wrapper">
-              Loading products...
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="empty-wrapper">
-              No products found.
-            </div>
-          ) : (
-            <div className="products-grid">
-              {filteredProducts.map((product) => {
-                const isAdding =
-                  addingId === product.id;
+          <div className="products-grid">
+            {filteredProducts.map((product) => {
+              const isAdding =
+                addingId === product.id;
 
-                const outOfStock =
-                  product.stock === 0;
+              const outOfStock =
+                product.stock === 0;
 
-                const btnDisabled =
-                  loading ||
-                  outOfStock ||
-                  !isAuthenticated ||
-                  isAdding;
+              return (
+                <div
+                  key={product.id}
+                  className="product-card"
+                >
+                  <div className="product-image-wrapper">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="product-image"
+                    />
 
-                return (
-                  <div
-                    key={product.id}
-                    className="product-card"
-                  >
-                    {/* Image */}
-                    <div className="product-image-wrapper">
-                      <img
-                        src={
-                          product.image ||
-                          unsplashFallback[
-                            product.category
-                          ] ||
-                          unsplashFallback.default
-                        }
-                        alt={product.name}
-                        className="product-image"
-                        onError={(e) => {
-                          (
-                            e.target as HTMLImageElement
-                          ).src =
-                            unsplashFallback[
-                              product.category
-                            ] ||
-                            unsplashFallback.default;
-                        }}
+                    <span className="category-badge">
+                      {product.category}
+                    </span>
+
+                    <span className="rating-badge">
+                      <Star
+                        size={12}
+                        fill="#f59e0b"
+                        color="#f59e0b"
                       />
-
-                      <span className="category-badge">
-                        {product.category}
-                      </span>
-
-                      <span className="rating-badge">
-                        <Star
-                          size={12}
-                          fill="#f59e0b"
-                          color="#f59e0b"
-                        />
-                        4.8
-                      </span>
-                    </div>
-
-                    {/* Body */}
-                    <div className="product-body">
-                      <div className="product-name">
-                        {product.name}
-                      </div>
-
-                      <div className="product-description">
-                        {product.description}
-                      </div>
-
-                      <div className="product-row">
-                        <span className="product-price">
-                          ₹
-                          {Number(
-                            product.price
-                          ).toFixed(2)}
-                        </span>
-
-                        <span
-                          className={`stock-badge ${
-                            outOfStock
-                              ? 'out-stock'
-                              : product.stock <= 10
-                              ? 'low-stock'
-                              : 'in-stock'
-                          }`}
-                        >
-                          {outOfStock
-                            ? 'Sold Out'
-                            : product.stock <= 10
-                            ? `${product.stock} left`
-                            : 'In Stock'}
-                        </span>
-                      </div>
-
-                      <button
-                        className="cart-btn"
-                        disabled={btnDisabled}
-                        onClick={() =>
-                          handleAddToCart(
-                            product.id
-                          )
-                        }
-                      >
-                        <ShoppingCart size={15} />
-
-                        {isAdding
-                          ? 'Adding...'
-                          : !isAuthenticated
-                          ? 'Sign In to Order'
-                          : outOfStock
-                          ? 'Out of Stock'
-                          : 'Add to Cart'}
-                      </button>
-                    </div>
+                      4.9
+                    </span>
                   </div>
-                );
-              })}
+
+                  <div className="product-body">
+                    <div className="product-name">
+                      {product.name}
+                    </div>
+
+                    <div className="product-description">
+                      {product.description}
+                    </div>
+
+                    <div className="product-row">
+                      <span className="product-price">
+                        ₹
+                        {product.price.toFixed(2)}
+                      </span>
+
+                      <span
+                        className={`stock-badge ${
+                          outOfStock
+                            ? 'out-stock'
+                            : product.stock <= 10
+                            ? 'low-stock'
+                            : ''
+                        }`}
+                      >
+                        {outOfStock
+                          ? 'Sold Out'
+                          : product.stock <= 10
+                          ? `${product.stock} left`
+                          : 'In Stock'}
+                      </span>
+                    </div>
+
+                    <button
+                      className="cart-btn"
+                      disabled={
+                        loading ||
+                        outOfStock ||
+                        isAdding
+                      }
+                      onClick={() =>
+                        handleAddToCart(product.id)
+                      }
+                    >
+                      <ShoppingCart size={16} />
+
+                      {isAdding
+                        ? 'Adding...'
+                        : 'Add to Cart'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {!isAuthenticated && (
+            <div className="signin-box">
+              <h3 className="signin-title">
+                Ready to Order?
+              </h3>
+
+              <p className="signin-text">
+                Sign in to add products to your cart.
+              </p>
+
+              <button
+                className="signin-btn"
+                onClick={() => {
+                  const trigger =
+                    document.querySelector(
+                      '[data-auth-trigger]'
+                    ) as HTMLElement | null;
+
+                  trigger?.click();
+                }}
+              >
+                Sign In
+              </button>
             </div>
           )}
-
-          {/* Sign In CTA */}
-          {!isAuthenticated &&
-            !loadingProducts && (
-              <div className="signin-box">
-                <h3 className="signin-title">
-                  Ready to Order?
-                </h3>
-
-                <p className="signin-text">
-                  Sign in to add items to your
-                  cart and place orders.
-                </p>
-
-                <button
-                  className="signin-btn"
-                  onClick={() => {
-                    const trigger =
-                      document.querySelector(
-                        '[data-auth-trigger]'
-                      ) as HTMLElement | null;
-
-                    trigger?.click();
-                  }}
-                >
-                  Sign In Now
-                </button>
-              </div>
-            )}
         </div>
       </section>
     </>
