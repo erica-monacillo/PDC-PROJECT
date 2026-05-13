@@ -7,7 +7,19 @@
 
   Run `npm i` to install the dependencies.
 
+  # Frontend
   Run `npm run dev` to start the development server.
-  
-  # http://localhost:5174/.
-  
+
+  # Backend
+  Run `cd server`
+  Run `npm start` 
+
+  # Demo Admin Account: 
+  Email: admin@sweetshop.com
+  Password: admin123
+
+ ## Team BlackRaven  & Roles
+ Monacillo, Erica Jieren  
+ Suelo, Shene Rose    
+ Arriba, Rodrigo      
+ Pana, John Luke Rodrigo 
