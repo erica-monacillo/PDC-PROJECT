@@ -357,7 +357,7 @@ function OrderCard({
                   <button
                     key={s}
                     style={btnStyle}
-                    disabled={!isNext || updating}
+                    disabled={!isNext || !!updating}
                     onClick={() => isNext && onUpdateStatus(order.id, s)}
                     title={isNext ? `Move to ${STATUS_META[s].label}` : undefined}
                   >

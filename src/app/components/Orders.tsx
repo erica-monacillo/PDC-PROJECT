@@ -21,7 +21,7 @@ interface Order {
   userId: string;
   items: OrderItem[];
   totalPrice: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: 'pending' | 'processing' | 'delivering' | 'completed' | 'cancelled';
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +34,7 @@ interface OrdersProps {
 const statusConfig = {
   pending:    { icon: Clock,        color: 'rgba(245,158,11,0.9)',  bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)',  label: 'Pending' },
   processing: { icon: Loader,       color: 'rgba(99,179,237,0.9)',  bg: 'rgba(99,179,237,0.08)',  border: 'rgba(99,179,237,0.2)',  label: 'Processing' },
+  delivering: { icon: Truck,        color: 'rgba(52,211,153,0.9)',  bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.2)',  label: 'Delivering' },
   completed:  { icon: CheckCircle,  color: 'rgba(52,211,153,0.9)',  bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.2)',  label: 'Completed' },
   cancelled:  { icon: AlertCircle,  color: 'rgba(239,68,68,0.9)',   bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',   label: 'Cancelled' },
 };
@@ -117,7 +118,8 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
     { key: 'processing', label: 'Processing' },
-    { key: 'completed', label: 'Done' },
+    { key: 'delivering', label: 'Delivering' },
+    { key: 'completed',  label: 'Complete' },
     { key: 'cancelled', label: 'Cancelled' },
   ];
 
@@ -399,10 +401,11 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
 
                     <div className="ord-card-footer">
                       <div className="ord-delivery-note">
-                        {order.status === 'pending' && <><Clock size={12} /> Processing soon</>}
-                        {order.status === 'processing' && <><Truck size={12} /> Out for delivery</>}
-                        {order.status === 'completed' && <><CheckCircle size={12} /> Delivered</>}
-                        {order.status === 'cancelled' && <><AlertCircle size={12} /> Cancelled</>}
+                      {order.status === 'pending'    && <><Clock size={12} /> Processing soon</>}
+                      {order.status === 'processing' && <><Loader size={12} /> Preparing your order</>}
+                      {order.status === 'delivering' && <><Truck size={12} /> Out for delivery</>}
+                      {order.status === 'completed'  && <><CheckCircle size={12} /> Delivered</>}
+                      {order.status === 'cancelled'  && <><AlertCircle size={12} /> Cancelled</>}
                       </div>
                       {order.status === 'pending' && (
                         <button className="ord-cancel-btn" onClick={() => cancelOrder(order.id)}>Cancel</button>
@@ -422,7 +425,7 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                     </div>
                     <div className="ord-admin-stat">
                       <div className="ord-admin-num" style={{ color: 'rgba(52,211,153,0.9)' }}>{orders.filter(o => o.status === 'completed').length}</div>
-                      <div className="ord-admin-label">Done</div>
+                      <div className="ord-admin-label">Complete</div>
                     </div>
                     <div className="ord-admin-stat">
                       <div className="ord-admin-num" style={{ color: 'rgba(99,179,237,0.9)' }}>{orders.filter(o => o.status === 'processing').length}</div>
