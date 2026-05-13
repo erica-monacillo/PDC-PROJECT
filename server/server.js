@@ -829,7 +829,7 @@ const PORT = process.env.PORT || 3001;
 
 initializeApp().then(() => {
   initializeAdmin();
-  startOrderProcessor();
+  // startOrderProcessor(); // disabled - admin controls manually
 
   httpServer.listen(PORT, () => {
     console.log(`

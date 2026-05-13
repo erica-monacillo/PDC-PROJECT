@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
+const API = import.meta.env.VITE_API_URL || 'https://pdc-project.onrender.com';
+
 interface Order {
   id: string;
   userId: string;
@@ -41,7 +43,7 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('https://pdc-project.onrender.com/api/admin/orders', {
+      const response = await fetch(`${API}/api/admin/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -60,19 +62,22 @@ export default function AdminDashboard() {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
+      const response = await fetch(`${API}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ status }),
       });
 
       if (response.ok) {
-        fetchOrders(); // Refresh orders
+        // Update local state instantly without refetching
+        setOrders(prev =>
+          prev.map(o => o.id === orderId ? { ...o, status: status as Order['status'] } : o)
+        );
         if (selectedOrder?.id === orderId) {
-          setSelectedOrder(null);
+          setSelectedOrder(prev => prev ? { ...prev, status: status as Order['status'] } : null);
         }
       }
     } catch (error) {
@@ -189,7 +194,7 @@ export default function AdminDashboard() {
                           {order.customerInfo.name} • {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-gray-600">
-                          ${parseFloat(String(order.totalPrice)).toFixed(2)} • {order.items.length} items
+                          ₹{Number(order.totalPrice).toFixed(2)} • {order.items.length} items
                         </div>
                       </div>
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -216,7 +221,7 @@ export default function AdminDashboard() {
                     <div className="text-sm text-gray-600 space-y-1">
                       <div>Status: <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>{selectedOrder.status}</span></div>
                       <div>Created: {new Date(selectedOrder.createdAt).toLocaleString()}</div>
-                      <div>Total: ${parseFloat(selectedOrder.totalPrice).toFixed(2)}</div>
+                      <div>Total: ₹{Number(selectedOrder.totalPrice).toFixed(2)}</div>
                     </div>
                   </div>
 
@@ -242,7 +247,7 @@ export default function AdminDashboard() {
                       {selectedOrder.items.map((item, index) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span>{item.name} × {item.quantity}</span>
-                          <span>${(parseFloat(String(item.price)) * item.quantity).toFixed(2)}</span>
+                          <span>₹{(Number(item.price) * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
