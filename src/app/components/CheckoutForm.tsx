@@ -3,7 +3,7 @@ import { X, CreditCard, MapPin, User } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
 
-const API = import.meta.env.VITE_API_URL || 'https://pdc-project.onrender.com';
+const API = (import.meta as any).env.VITE_API_URL || 'https://pdc-project.onrender.com';
 
 interface CheckoutFormProps {
   isOpen: boolean;

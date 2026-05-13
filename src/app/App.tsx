@@ -72,7 +72,9 @@ function AppContent() {
             </div>
             
             <div id="orders">
-              <Orders />
+              <Orders isOpen={false} onClose={function (): void {
+            throw new Error('Function not implemented.');
+          } } />
             </div>
             
             <div id="about">
