@@ -1,15 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import { UtensilsCrossed, Truck, Package, Car, Flower2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const services = [
+interface Service {
+  id: number;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  accent: string;
+  glow: string;
+  orb: string;
+  label: string;
+}
+
+const services: Service[] = [
   {
     id: 1,
     icon: UtensilsCrossed,
     title: 'Dine-In',
     description: 'Enjoy freshly baked pastries in a warm, elegant café ambiance curated for the discerning palate.',
-    accent: '#f59e0b',
-    glow: 'rgba(245,158,11,0.35)',
-    orb: 'radial-gradient(circle, rgba(251,191,36,0.5) 0%, rgba(245,158,11,0.15) 60%, transparent 100%)',
+    accent: '#FF9933',
+    glow: 'rgba(255,153,51,0.35)',
+    orb: 'radial-gradient(circle, rgba(255,153,51,0.5) 0%, rgba(255,153,51,0.15) 60%, transparent 100%)',
     label: '01',
   },
   {
@@ -17,9 +29,9 @@ const services = [
     icon: Package,
     title: 'Takeout',
     description: 'Curated favorites, exquisitely packaged — artisan freshness preserved for every journey.',
-    accent: '#f97316',
-    glow: 'rgba(249,115,22,0.35)',
-    orb: 'radial-gradient(circle, rgba(251,146,60,0.5) 0%, rgba(249,115,22,0.15) 60%, transparent 100%)',
+    accent: '#D4691A',
+    glow: 'rgba(212,105,26,0.35)',
+    orb: 'radial-gradient(circle, rgba(212,105,26,0.5) 0%, rgba(212,105,26,0.15) 60%, transparent 100%)',
     label: '02',
   },
   {
@@ -27,9 +39,9 @@ const services = [
     icon: Truck,
     title: 'Delivery',
     description: 'White-glove doorstep delivery — our promise of quality arrives with every order.',
-    accent: '#ec4899',
-    glow: 'rgba(236,72,153,0.35)',
-    orb: 'radial-gradient(circle, rgba(244,114,182,0.5) 0%, rgba(236,72,153,0.15) 60%, transparent 100%)',
+    accent: '#138808',
+    glow: 'rgba(19,136,8,0.35)',
+    orb: 'radial-gradient(circle, rgba(19,136,8,0.5) 0%, rgba(19,136,8,0.15) 60%, transparent 100%)',
     label: '03',
   },
   {
@@ -37,9 +49,9 @@ const services = [
     icon: Truck,
     title: 'No-Contact Delivery',
     description: 'Seamless, safe, and refined — the epitome of thoughtful modern luxury service.',
-    accent: '#a855f7',
-    glow: 'rgba(168,85,247,0.35)',
-    orb: 'radial-gradient(circle, rgba(192,132,252,0.5) 0%, rgba(168,85,247,0.15) 60%, transparent 100%)',
+    accent: '#8B3D3D',
+    glow: 'rgba(139,61,61,0.35)',
+    orb: 'radial-gradient(circle, rgba(139,61,61,0.5) 0%, rgba(139,61,61,0.15) 60%, transparent 100%)',
     label: '04',
   },
   {
@@ -47,9 +59,9 @@ const services = [
     icon: Car,
     title: 'Curbside Pickup',
     description: 'We come to you — effortless convenience designed around your lifestyle.',
-    accent: '#06b6d4',
-    glow: 'rgba(6,182,212,0.35)',
-    orb: 'radial-gradient(circle, rgba(34,211,238,0.5) 0%, rgba(6,182,212,0.15) 60%, transparent 100%)',
+    accent: '#6C3483',
+    glow: 'rgba(108,52,131,0.35)',
+    orb: 'radial-gradient(circle, rgba(108,52,131,0.5) 0%, rgba(108,52,131,0.15) 60%, transparent 100%)',
     label: '05',
   },
   {
@@ -57,22 +69,22 @@ const services = [
     icon: Flower2,
     title: 'Outdoor Seating',
     description: 'Bask in curated al fresco luxury — soft lighting, open skies, and artisanal moments.',
-    accent: '#10b981',
-    glow: 'rgba(16,185,129,0.35)',
-    orb: 'radial-gradient(circle, rgba(52,211,153,0.5) 0%, rgba(16,185,129,0.15) 60%, transparent 100%)',
+    accent: '#1D6145',
+    glow: 'rgba(29,97,69,0.35)',
+    orb: 'radial-gradient(circle, rgba(29,97,69,0.5) 0%, rgba(29,97,69,0.15) 60%, transparent 100%)',
     label: '06',
   },
 ];
 
-function ServiceCard({ service, index }) {
+function ServiceCard({ service, index }: { service: Service; index: number }) {
   const Icon = service.icon;
-  const cardRef = useRef(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: { clientX: number; clientY: number; }) => {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -110,7 +122,7 @@ function ServiceCard({ service, index }) {
         '--glow': service.glow,
         '--orb': service.orb,
         animationDelay: `${index * 0.1}s`,
-      }}
+      } as React.CSSProperties & Record<string, any>}
     >
       {/* Cursor-following glow */}
       <div className="card-cursor-glow" />
@@ -144,16 +156,16 @@ export function ServiceCards() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@200;300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
 
         .luxury-section {
           position: relative;
           padding: 120px 24px;
-          background: rgba(251,191,36,0.08);
+          background: linear-gradient(135deg, rgba(245,235,225,0.6) 0%, rgba(255,248,240,0.4) 100%);
           backdrop-filter: blur(40px) saturate(160%);
           -webkit-backdrop-filter: blur(40px) saturate(160%);
           overflow: hidden;
-          font-family: 'Josefin Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           min-height: 100vh;
         }
 
@@ -167,18 +179,18 @@ export function ServiceCards() {
         .bg-blob-1 {
           width: 700px; height: 700px;
           top: -200px; left: -200px;
-          background: radial-gradient(circle, rgba(251,191,36,0.35) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255,153,51,0.25) 0%, transparent 70%);
         }
         .bg-blob-2 {
           width: 600px; height: 600px;
           bottom: -150px; right: -150px;
-          background: radial-gradient(circle, rgba(245,130,11,0.28) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(124,45,18,0.15) 0%, transparent 70%);
         }
         .bg-blob-3 {
           width: 500px; height: 500px;
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
-          background: radial-gradient(circle, rgba(253,211,77,0.2) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255,153,51,0.12) 0%, transparent 70%);
         }
 
         /* Noise texture overlay */
@@ -193,48 +205,47 @@ export function ServiceCards() {
 
         /* Section header */
         .section-eyebrow {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 11px;
-          font-weight: 300;
-          letter-spacing: 0.4em;
+          font-family: 'Poppins', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.3em;
           text-transform: uppercase;
-          color: rgba(146,64,14,0.75);
+          color: rgba(255, 102, 0, 0.85);
           text-align: center;
           margin-bottom: 20px;
         }
         .section-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: clamp(2.8rem, 6vw, 5rem);
-          font-weight: 300;
-          letter-spacing: -0.01em;
-          color: #3b2005;
+          font-weight: 700;
+          letter-spacing: -0.015em;
+          color: #1a3a3a;
           text-align: center;
           line-height: 1.1;
           margin-bottom: 16px;
         }
         .section-title em {
           font-style: italic;
-          color: rgba(180,83,9,0.9);
+          color: #FF9933;
         }
         .section-subtitle {
-          font-family: 'Lora', serif;
-          font-size: 13px;
+          font-family: 'Poppins', sans-serif;
+          font-size: 14px;
           font-weight: 400;
-          font-style: italic;
-          letter-spacing: 0.02em;
-          color: rgba(59,32,5,0.52);
+          letter-spacing: 0.01em;
+          color: rgba(26, 58, 58, 0.68);
           text-align: center;
-          max-width: 400px;
+          max-width: 500px;
           margin: 0 auto 80px;
-          line-height: 1.8;
+          line-height: 1.7;
         }
 
         /* Thin gold divider */
         .divider {
-          width: 60px;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent);
-          margin: 20px auto;
+          width: 80px;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #FF9933, transparent);
+          margin: 25px auto;
         }
 
         /* Cards grid */
@@ -375,13 +386,13 @@ export function ServiceCards() {
           gap: 12px;
           padding: 16px 44px;
           border-radius: 100px;
-          background: rgba(180,83,9,0.1);
-          border: 1px solid rgba(180,83,9,0.3);
-          color: rgba(146,64,14,0.95);
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 11px;
-          font-weight: 300;
-          letter-spacing: 0.4em;
+          background: linear-gradient(135deg, rgba(255,153,51,0.15) 0%, rgba(180,83,9,0.1) 100%);
+          border: 1.5px solid rgba(255,153,51,0.4);
+          color: #b45309;
+          font-family: 'Poppins', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.15em;
           text-transform: uppercase;
           text-decoration: none;
           backdrop-filter: blur(12px);
@@ -393,23 +404,23 @@ export function ServiceCards() {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(180,83,9,0.06);
+          background: linear-gradient(135deg, rgba(255,153,51,0.2) 0%, rgba(180,83,9,0.1) 100%);
           opacity: 0;
           transition: opacity 0.35s ease;
         }
         .cta-btn:hover {
-          background: rgba(180,83,9,0.16);
-          border-color: rgba(180,83,9,0.55);
-          box-shadow: 0 0 40px rgba(180,83,9,0.15), 0 0 80px rgba(180,83,9,0.06);
+          background: linear-gradient(135deg, rgba(255,153,51,0.25) 0%, rgba(180,83,9,0.2) 100%);
+          border-color: rgba(255,153,51,0.6);
+          box-shadow: 0 0 40px rgba(255,153,51,0.2), 0 0 80px rgba(255,153,51,0.08);
           transform: translateY(-2px);
-          color: rgba(120,53,15,1);
+          color: #92400e;
         }
         .cta-btn:hover::before { opacity: 1; }
         .cta-dot {
           width: 4px; height: 4px;
           border-radius: 50%;
           background: currentColor;
-          opacity: 0.6;
+          opacity: 0.8;
         }
       `}</style>
 

@@ -109,7 +109,7 @@ export function Header({ activeSection }: HeaderProps) {
           position: absolute;
           top: 0; left: 20%; right: 20%;
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,153,51,0.6), transparent);
           opacity: 0;
           border-radius: 999px;
           transition: opacity 0.5s ease;
@@ -133,11 +133,11 @@ export function Header({ activeSection }: HeaderProps) {
           text-shadow: 0 2px 12px rgba(0,0,0,0.4);
         }
         .lux-logo-sub {
-          font-family: 'Josefin Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 10px;
           font-weight: 200;
           letter-spacing: 0.25em;
-          color: rgba(245,158,11,0.65);
+          color: rgba(255,153,51,0.75);
           display: block;
           margin-top: 3px;
         }
@@ -168,9 +168,9 @@ export function Header({ activeSection }: HeaderProps) {
           background: rgba(255,255,255,0.05);
         }
         .lux-nav-btn.active {
-          color: rgba(245,158,11,0.9);
-          background: rgba(245,158,11,0.08);
-          border: 1px solid rgba(245,158,11,0.15);
+          color: rgba(255,153,51,0.95);
+          background: rgba(255,153,51,0.1);
+          border: 1px solid rgba(255,153,51,0.2);
         }
         /* Active dot indicator */
         .lux-nav-btn.active::after {
@@ -180,7 +180,7 @@ export function Header({ activeSection }: HeaderProps) {
           transform: translateX(-50%);
           width: 3px; height: 3px;
           border-radius: 50%;
-          background: rgba(245,158,11,0.7);
+          background: rgba(255,153,51,0.8);
         }
 
         /* ── Right actions ── */
@@ -212,9 +212,9 @@ export function Header({ activeSection }: HeaderProps) {
         .lux-cart-badge {
           position: absolute;
           top: -5px; right: -5px;
-          background: rgba(245,158,11,0.9);
+          background: rgba(255,153,51,0.95);
           color: #06050a;
-          font-family: 'Josefin Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 9px;
           font-weight: 400;
           width: 18px; height: 18px;
@@ -225,25 +225,25 @@ export function Header({ activeSection }: HeaderProps) {
 
         /* Sign In button */
         .lux-signin-btn {
-          font-family: 'Josefin Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 10px;
-          font-weight: 300;
-          letter-spacing: 0.3em;
+          font-weight: 500;
+          letter-spacing: 0.15em;
           text-transform: uppercase;
           padding: 9px 20px;
           border-radius: 100px;
-          background: rgba(245,158,11,0.1);
-          border: 1px solid rgba(245,158,11,0.3);
-          color: rgba(245,158,11,0.9);
+          background: rgba(255,153,51,0.12);
+          border: 1px solid rgba(255,153,51,0.35);
+          color: rgba(255,153,51,0.95);
           cursor: pointer;
           transition: all 0.3s ease;
           white-space: nowrap;
         }
         .lux-signin-btn:hover {
-          background: rgba(245,158,11,0.18);
-          border-color: rgba(245,158,11,0.55);
-          box-shadow: 0 0 24px rgba(245,158,11,0.18);
-          color: rgba(245,158,11,1);
+          background: rgba(255,153,51,0.2);
+          border-color: rgba(255,153,51,0.6);
+          box-shadow: 0 0 24px rgba(255,153,51,0.2);
+          color: rgba(255,153,51,1);
         }
 
         /* User button */
@@ -264,10 +264,10 @@ export function Header({ activeSection }: HeaderProps) {
         .lux-user-avatar {
           width: 26px; height: 26px;
           border-radius: 50%;
-          background: rgba(245,158,11,0.15);
-          border: 1px solid rgba(245,158,11,0.3);
+          background: rgba(255,153,51,0.15);
+          border: 1px solid rgba(255,153,51,0.35);
           display: flex; align-items: center; justify-content: center;
-          color: rgba(245,158,11,0.9);
+          color: rgba(255,153,51,0.95);
         }
         .lux-user-name {
           font-family: 'Josefin Sans', sans-serif;

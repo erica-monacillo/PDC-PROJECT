@@ -64,16 +64,16 @@ export function Products() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@200;300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
 
         .prod-section {
           position: relative;
           padding: 120px 24px;
-          background: rgba(251,191,36,0.08);
+          background: rgba(245,235,225,0.6);
           backdrop-filter: blur(40px) saturate(160%);
           -webkit-backdrop-filter: blur(40px) saturate(160%);
           overflow: hidden;
-          font-family: 'Josefin Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           min-height: 100vh;
         }
 
@@ -84,16 +84,16 @@ export function Products() {
         }
         .prod-blob-1 {
           width: 700px; height: 700px; top: -200px; left: -200px;
-          background: radial-gradient(circle, rgba(251,191,36,0.32) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255,153,51,0.25) 0%, transparent 70%);
         }
         .prod-blob-2 {
           width: 600px; height: 600px; bottom: -150px; right: -150px;
-          background: radial-gradient(circle, rgba(245,130,11,0.25) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(124,45,18,0.15) 0%, transparent 70%);
         }
         .prod-blob-3 {
           width: 500px; height: 500px; top: 50%; left: 50%;
           transform: translate(-50%,-50%);
-          background: radial-gradient(circle, rgba(253,211,77,0.18) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255,153,51,0.12) 0%, transparent 70%);
         }
         .prod-noise {
           position: absolute; inset: 0; opacity: 0.03; pointer-events: none;
@@ -103,24 +103,24 @@ export function Products() {
 
         /* Header */
         .prod-eyebrow {
-          font-size: 11px; font-weight: 300; letter-spacing: 0.4em;
-          text-transform: uppercase; color: rgba(146,64,14,0.7);
-          text-align: center; margin-bottom: 18px;
+          font-size: 12px; font-weight: 500; letter-spacing: 0.3em;
+          text-transform: uppercase; color: rgba(255,153,51,0.85);
+          text-align: center; margin-bottom: 20px;
         }
         .prod-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 300;
-          letter-spacing: -0.01em; color: #3b2005;
-          text-align: center; line-height: 1.1; margin-bottom: 14px;
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 700;
+          letter-spacing: -0.015em; color: #1a3a3a;
+          text-align: center; line-height: 1.1; margin-bottom: 16px;
         }
-        .prod-title em { font-style: italic; color: rgba(180,83,9,0.9); }
+        .prod-title em { font-style: italic; color: #FF9933; }
         .prod-divider {
-          width: 56px; height: 1px; margin: 0 auto 14px;
-          background: linear-gradient(90deg, transparent, rgba(180,83,9,0.4), transparent);
+          width: 80px; height: 2px; margin: 0 auto 25px;
+          background: linear-gradient(90deg, transparent, #FF9933, transparent);
         }
         .prod-subtitle {
-          font-size: 12px; font-weight: 200; letter-spacing: 0.14em;
-          color: rgba(59,32,5,0.45); text-align: center; margin-bottom: 56px;
+          font-size: 14px; font-weight: 400; letter-spacing: 0.01em;
+          color: rgba(26, 58, 58, 0.68); text-align: center; margin-bottom: 60px;
         }
 
         /* Category filters */
@@ -129,24 +129,24 @@ export function Products() {
           gap: 8px; margin-bottom: 48px;
         }
         .prod-filter-btn {
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 300; letter-spacing: 0.25em;
+          font-family: 'Poppins', sans-serif;
+          font-size: 11px; font-weight: 400; letter-spacing: 0.15em;
           text-transform: uppercase; padding: 9px 20px; border-radius: 100px;
           background: rgba(255,237,180,0.3);
-          border: 1px solid rgba(251,191,36,0.2);
-          color: rgba(59,32,5,0.5);
+          border: 1px solid rgba(255,153,51,0.25);
+          color: rgba(59,32,5,0.6);
           cursor: pointer; transition: all 0.3s ease;
         }
         .prod-filter-btn:hover {
           background: rgba(255,237,180,0.5);
-          border-color: rgba(180,83,9,0.3);
-          color: rgba(59,32,5,0.8);
+          border-color: rgba(255,153,51,0.4);
+          color: rgba(59,32,5,0.85);
         }
         .prod-filter-btn.active {
-          background: rgba(180,83,9,0.12);
-          border-color: rgba(180,83,9,0.35);
-          color: rgba(146,64,14,0.95);
-          box-shadow: 0 0 20px rgba(180,83,9,0.1);
+          background: rgba(255,153,51,0.15);
+          border-color: rgba(255,153,51,0.45);
+          color: rgba(146,64,14,1);
+          box-shadow: 0 0 20px rgba(255,153,51,0.15);
         }
 
         /* Grid */
@@ -277,20 +277,20 @@ export function Products() {
         .prod-btn {
           width: 100%; padding: 12px;
           border-radius: 14px;
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase;
+          font-family: 'Poppins', sans-serif;
+          font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           cursor: pointer; transition: all 0.3s ease; border: none;
         }
         .prod-btn-active {
-          background: rgba(180,83,9,0.1);
-          border: 1px solid rgba(180,83,9,0.3);
+          background: rgba(255,153,51,0.12);
+          border: 1px solid rgba(255,153,51,0.35);
           color: rgba(146,64,14,0.95);
         }
         .prod-btn-active:hover:not(:disabled) {
-          background: rgba(180,83,9,0.18);
-          border-color: rgba(180,83,9,0.5);
-          box-shadow: 0 0 20px rgba(180,83,9,0.12);
+          background: rgba(255,153,51,0.2);
+          border-color: rgba(255,153,51,0.55);
+          box-shadow: 0 0 20px rgba(255,153,51,0.15);
           transform: translateY(-1px);
         }
         .prod-btn-disabled {
@@ -307,14 +307,14 @@ export function Products() {
         }
         .prod-spinner {
           width: 44px; height: 44px; border-radius: 50%;
-          border: 2px solid rgba(180,83,9,0.15);
-          border-top-color: rgba(180,83,9,0.7);
+          border: 2px solid rgba(255,153,51,0.15);
+          border-top-color: rgba(255,153,51,0.8);
           animation: prodSpin 0.8s linear infinite;
         }
         @keyframes prodSpin { to { transform: rotate(360deg); } }
         .prod-loading-text {
-          font-size: 11px; font-weight: 200; letter-spacing: 0.25em; text-transform: uppercase;
-          color: rgba(59,32,5,0.4);
+          font-size: 12px; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase;
+          color: rgba(26, 58, 58, 0.6);
         }
 
         /* Empty state */
@@ -343,41 +343,41 @@ export function Products() {
           max-width: 1200px; margin: 64px auto 0;
           padding: 48px 40px; border-radius: 28px;
           background: rgba(255,237,180,0.4);
-          backdrop-filter: blur(20px); border: 1px solid rgba(251,191,36,0.3);
+          backdrop-filter: blur(20px); border: 1px solid rgba(255,153,51,0.3);
           box-shadow: 0 16px 48px rgba(146,64,14,0.1), inset 0 1px 0 rgba(255,255,255,0.5);
           text-align: center; position: relative; overflow: hidden;
         }
         .prod-cta-glow {
           position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
           width: 400px; height: 200px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255,153,51,0.3) 0%, transparent 70%);
           filter: blur(40px); pointer-events: none;
         }
         .prod-cta-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 2rem; font-weight: 300; color: #3b2005; margin-bottom: 10px;
+          font-family: 'Playfair Display', serif;
+          font-size: 2rem; font-weight: 700; color: #1a3a3a; margin-bottom: 10px;
         }
-        .prod-cta-title em { font-style: italic; color: rgba(180,83,9,0.9); }
+        .prod-cta-title em { font-style: italic; color: #FF9933; }
         .prod-cta-sub {
-          font-size: 12px; font-weight: 200; letter-spacing: 0.12em;
-          color: rgba(59,32,5,0.45); margin-bottom: 28px;
+          font-size: 14px; font-weight: 400; letter-spacing: 0.01em;
+          color: rgba(26, 58, 58, 0.68); margin-bottom: 28px;
         }
         .prod-cta-btn {
           display: inline-flex; align-items: center; gap: 10px;
           padding: 14px 36px; border-radius: 100px;
-          background: rgba(180,83,9,0.1); border: 1px solid rgba(180,83,9,0.3);
+          background: rgba(255,153,51,0.12); border: 1px solid rgba(255,153,51,0.35);
           color: rgba(146,64,14,0.95);
-          font-family: 'Josefin Sans', sans-serif;
-          font-size: 10px; font-weight: 300; letter-spacing: 0.35em; text-transform: uppercase;
+          font-family: 'Poppins', sans-serif;
+          font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
           cursor: pointer; transition: all 0.3s ease;
         }
         .prod-cta-btn:hover {
-          background: rgba(180,83,9,0.18);
-          border-color: rgba(180,83,9,0.5);
-          box-shadow: 0 0 28px rgba(180,83,9,0.14);
+          background: rgba(255,153,51,0.2);
+          border-color: rgba(255,153,51,0.55);
+          box-shadow: 0 0 28px rgba(255,153,51,0.15);
           transform: translateY(-2px);
         }
-        .prod-cta-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+        .prod-cta-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
       `}</style>
 
       <div id="products" className="prod-section">

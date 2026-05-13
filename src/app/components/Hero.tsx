@@ -53,7 +53,7 @@ export function Hero() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <a
             href="tel:+91234567890"
-            className="w-full sm:w-auto group bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto group bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center gap-2"
           >
             <Phone className="w-5 h-5 group-hover:animate-pulse" />
             Call Now +91 23456 7890
@@ -63,7 +63,7 @@ export function Hero() {
             href="https://www.google.com/maps/place/Shri+G+S+Sweets+And+Bakers/@26.9544576,75.7085848,739m/data=!3m2!1e3!4b1!4m6!3m5!1s0x396c4d0ba72bdc2b:0x59047e24fa42f679!8m2!3d26.9544576!4d75.7085848!16s%2Fg%2F11v18skqcg!17m2!4m1!1e3!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto bg-white hover:bg-gray-100 text-gray-900 border-2 border-white/30 px-8 py-4 rounded-xl font-semibold text-lg shadow-xl transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto bg-white hover:bg-orange-50 text-orange-600 border-2 border-white/30 px-8 py-4 rounded-xl font-semibold text-lg shadow-xl transition-all flex items-center justify-center gap-2"
           >
             <MapPin className="w-5 h-5" />
             Get Directions
