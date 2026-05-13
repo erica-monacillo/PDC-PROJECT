@@ -9,7 +9,7 @@ const menuItems = [
     nameHindi: 'इमरती जलेबी',
     description: 'Crispy, sweet, and freshly made every morning',
     price: '₹60/kg',
-    image: 'images/Gulab.jpg',
+    image: 'https://img-cdn.publive.online/fit-in/1200x675/filters:format(webp)/sanjeev-kapoor/media/post_banners/13521226b572c966e530f0f827bd04bb370a4ca27e83fc3efac5e3ee1b6afb07.jpg',
     popular: true
   },
   {
