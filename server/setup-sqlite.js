@@ -54,7 +54,7 @@ async function setupSQLite() {
         customer_info TEXT NOT NULL,
         items TEXT NOT NULL,
         total_price DECIMAL(10,2) NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
+        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'delivering', 'completed', 'cancelled')),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );

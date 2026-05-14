@@ -93,7 +93,7 @@ export function Orders({
   isOpen,
   onClose,
 }: OrdersProps) {
-  const { user, isAuthenticated, isAdmin } =
+  const { user, isAuthenticated, isAdmin, token } =
     useAuth();
 
   const [orders, setOrders] = useState<Order[]>(
@@ -165,9 +165,7 @@ export function Orders({
         `${API}/api/orders`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              'authToken'
-            )}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -198,10 +196,16 @@ export function Orders({
     }
   };
 
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
   const cancelOrder = async (
     orderId: string
   ) => {
     try {
+      setCancellingOrderId(orderId);
+      setCancelError(null);
+
       const res = await fetch(
         `${API}/api/orders/${orderId}/cancel`,
         {
@@ -225,12 +229,18 @@ export function Orders({
               : o
           )
         );
+        setCancelError(null);
+      } else {
+        const error = await res.json();
+        setCancelError(error.error || 'Failed to cancel order');
+        console.error('Cancel order error:', error);
       }
     } catch (err) {
-      console.error(
-        'Error cancelling order:',
-        err
-      );
+      const errorMsg = err instanceof Error ? err.message : 'Failed to cancel order';
+      setCancelError(errorMsg);
+      console.error('Error cancelling order:', err);
+    } finally {
+      setCancellingOrderId(null);
     }
   };
 
@@ -414,6 +424,29 @@ export function Orders({
           padding: 20px;
           overflow-y: auto;
           background: #f8fafc;
+        }
+
+        .orders-error {
+          background: #fee2e2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 12px 16px;
+          border-radius: 10px;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 14px;
+        }
+
+        .orders-error-close {
+          background: none;
+          border: none;
+          color: #dc2626;
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+          align-items: center;
         }
 
         .orders-empty {
@@ -627,10 +660,20 @@ export function Orders({
           cursor: pointer;
 
           transition: 0.2s;
+
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .orders-cancel-btn:hover {
           background: #fee2e2;
+        }
+
+        .orders-cancel-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          background: #fed7d7;
         }
 
         .orders-admin {
@@ -678,6 +721,15 @@ export function Orders({
           font-size: 12px;
           color: #64748b;
           margin-top: 4px;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         @media (max-width: 768px) {
@@ -754,6 +806,17 @@ export function Orders({
           </div>
 
           <div className="orders-body">
+            {cancelError && (
+              <div className="orders-error">
+                <span>{cancelError}</span>
+                <button
+                  className="orders-error-close"
+                  onClick={() => setCancelError(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            )}
             {!isAuthenticated ? (
               <div className="orders-empty">
                 <div className="orders-empty-icon">
@@ -991,8 +1054,21 @@ export function Orders({
                                 order.id
                               )
                             }
+                            disabled={cancellingOrderId === order.id}
                           >
-                            Cancel
+                            {cancellingOrderId === order.id ? (
+                              <>
+                                <Loader2
+                                  size={14}
+                                  style={{
+                                    animation: 'spin 1s linear infinite'
+                                  }}
+                                />
+                                Cancelling...
+                              </>
+                            ) : (
+                              'Cancel'
+                            )}
                           </button>
                         )}
                       </div>

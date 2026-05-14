@@ -626,9 +626,10 @@ export function Cart({ isOpen, onClose }: CartProps) {
 
                   <button
                     className="cart-btn-checkout"
-                    onClick={() =>
-                      setShowCheckout(true)
-                    }
+                    onClick={() => {
+                      setShowCheckout(true);
+                      onClose();
+                    }}
                     disabled={loading}
                   >
                     Checkout

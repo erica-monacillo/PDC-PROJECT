@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS orders (
     customer_info JSONB NOT NULL,
     items JSONB NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'delivering', 'completed', 'cancelled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
