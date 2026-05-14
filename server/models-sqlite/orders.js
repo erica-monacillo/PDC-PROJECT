@@ -17,6 +17,7 @@ export const getAllOrders = async () => {
   const result = await db.query(query);
   return result.rows.map(order => ({
     ...order,
+    userId: order.user_id,
     customerInfo: JSON.parse(order.customer_info),
     items: JSON.parse(order.items),
     totalPrice: order.total_price,
@@ -33,6 +34,7 @@ export const getOrderById = async (id) => {
   const order = result.rows[0];
   return {
     ...order,
+    userId: order.user_id,
     customerInfo: JSON.parse(order.customer_info),
     items: JSON.parse(order.items),
     totalPrice: order.total_price,
@@ -46,6 +48,7 @@ export const getOrdersByUserId = async (userId) => {
   const result = await db.query(query, [userId]);
   return result.rows.map(order => ({
     ...order,
+    userId: order.user_id,
     customerInfo: JSON.parse(order.customer_info),
     items: JSON.parse(order.items),
     totalPrice: order.total_price,
@@ -57,7 +60,11 @@ export const getOrdersByUserId = async (userId) => {
 export const updateOrderStatus = async (id, status) => {
   const query = 'UPDATE orders SET status = ?, updated_at = datetime(\'now\') WHERE id = ?';
   await db.query(query, [status, id]);
-  return await getOrderById(id);
+  const order = await getOrderById(id);
+  return {
+    ...order,
+    userId: order.userId || order.user_id
+  };
 };
 
 export const getNextOrderId = async () => {

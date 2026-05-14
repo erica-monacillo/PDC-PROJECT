@@ -432,6 +432,7 @@ app.post('/api/cart/add', authenticateToken, async (req, res) => {
         price: product.price,
         quantity,
         image: product.image,
+        category: product.category,
       });
     }
 
@@ -600,35 +601,74 @@ app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
 // Cancel order
 app.post('/api/orders/:orderId/cancel', authenticateToken, async (req, res) => {
   try {
+    console.log('Cancel request for order:', req.params.orderId);
+    
     const order = await orderModel.getOrderById(req.params.orderId);
+    
     if (!order) {
+      console.log('Order not found:', req.params.orderId);
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    console.log('Order found:', {
+      orderId: req.params.orderId,
+      orderUserId: order.userId,
+      userId: req.user.id,
+      userRole: req.user.role
+    });
+
     if (req.user.role !== 'admin' && order.userId !== req.user.id) {
+      console.error('Access denied - user does not own order');
       return res.status(403).json({ error: 'Access denied' });
     }
 
     if (order.status === 'completed') {
-      return res.status(400).json({ error: 'Cannot cancel completed order' });
+      return res.status(400).json({ error: 'Cannot cancel a completed order' });
     }
 
-    const updatedOrder = await db.transaction(async (client) => {
+    if (order.status === 'delivering') {
+      return res.status(400).json({ error: 'Cannot cancel an order that is already being delivered' });
+    }
+
+    if (order.status === 'cancelled') {
+      return res.status(400).json({ error: 'Order is already cancelled' });
+    }
+
+    console.log('Restoring stock for items:', order.items.length);
+
+    // Restore stock for each item
+    try {
       for (const item of order.items) {
+        console.log('Processing item:', item);
+        if (!item.productId) {
+          console.warn('Item missing productId:', item);
+          continue;
+        }
         const product = await productModel.getProductById(item.productId);
         if (product) {
-          await productModel.updateProductStock(item.productId, product.stock + item.quantity);
+          const newStock = product.stock + item.quantity;
+          console.log(`Updating product ${item.productId} stock from ${product.stock} to ${newStock}`);
+          await productModel.updateProductStock(item.productId, newStock);
+        } else {
+          console.warn('Product not found:', item.productId);
         }
       }
-      return await orderModel.updateOrderStatus(req.params.orderId, 'cancelled');
-    });
+    } catch (stockError) {
+      console.error('Error updating stock:', stockError);
+      return res.status(500).json({ error: 'Error updating product stock: ' + stockError.message });
+    }
 
+    // Update order status
+    console.log('Updating order status to cancelled');
+    const updatedOrder = await orderModel.updateOrderStatus(req.params.orderId, 'cancelled');
+
+    console.log('Order cancelled successfully');
     broadcastOrders();
     broadcastProducts();
     res.json({ success: true, order: updatedOrder });
   } catch (error) {
     console.error('Cancel order error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 });
 

@@ -9,7 +9,7 @@ const menuItems = [
     nameHindi: 'इमरती जलेबी',
     description: 'Crispy, sweet, and freshly made every morning',
     price: '₹60/kg',
-    image: 'images/Gulab.jpg',
+    image: 'https://img-cdn.publive.online/fit-in/1200x675/filters:format(webp)/sanjeev-kapoor/media/post_banners/13521226b572c966e530f0f827bd04bb370a4ca27e83fc3efac5e3ee1b6afb07.jpg',
     popular: true
   },
   {
@@ -46,6 +46,15 @@ const menuItems = [
     description: 'Fresh, crunchy savory snacks in convenient packets',
     price: '₹50/pack',
     image: 'https://images.unsplash.com/photo-1758910536889-43ce7b3199fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBzd2VldHMlMjBzaG9wJTIwZGlzcGxheXxlbnwxfHx8fDE3NzI1MjAwMTN8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    popular: false
+  },
+  {
+    id: 5,
+    name: 'Motichoor Ladoo',
+    nameHindi: 'मोतीचूर लादू',
+    description: 'Delicious, sweet, and traditional Indian sweets',
+    price: '₹70/kg',
+    image: 'https://www.ruchiskitchen.com/wp-content/uploads/2016/03/Motichoor-Ladoo-Recipe-5.jpg',
     popular: false
   },
 ];

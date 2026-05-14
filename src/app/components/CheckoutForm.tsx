@@ -38,6 +38,7 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
   });
 
   const [errors, setErrors] = useState<Partial<CustomerInfo>>({});
+  const [submitError, setSubmitError] = useState<string>('');
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CustomerInfo> = {};
@@ -67,7 +68,18 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
     e.preventDefault();
     if (!validateForm()) return;
 
+    setSubmitError('');
     try {
+      if (!token) {
+        setSubmitError('You must be logged in to place an order');
+        return;
+      }
+
+      if (cart.items.length === 0) {
+        setSubmitError('Your cart is empty. Please add items before checkout.');
+        return;
+      }
+
       const response = await fetch(`${API}/api/orders`, {
         method: 'POST',
         headers: {
@@ -77,19 +89,27 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
         body: JSON.stringify({ customerInfo }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to place order');
+        const errorMsg = data.error || 'Failed to place order';
+        setSubmitError(errorMsg);
+        console.error('Order error details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data
+        });
+        return;
       }
 
-      const result = await response.json();
-      console.log('Order placed successfully! Order ID:', result.order.id);
+      console.log('Order placed successfully! Order ID:', data.order.id);
       onOrderPlaced();
       onClose();
       window.location.reload();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to place order';
+      setSubmitError(errorMessage);
       console.error('Failed to place order:', error);
-      alert('Failed to place order. Please try again.');
     }
   };
 
@@ -113,6 +133,15 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Error Alert */}
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800 text-sm">
+                <strong>Error:</strong> {submitError}
+              </p>
+            </div>
+          )}
+
           {/* Order Summary */}
           <div className="bg-amber-50 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Order Summary</h3>
