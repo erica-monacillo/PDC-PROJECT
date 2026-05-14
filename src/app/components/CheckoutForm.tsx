@@ -102,7 +102,7 @@ export function CheckoutForm({ isOpen, onClose, onOrderPlaced }: CheckoutFormPro
         return;
       }
 
-      console.log('Order placed successfully! Order ID:', data.order.id);
+      console.log('Order placed successfully!! Order ID:', data.order.id);
       onOrderPlaced();
       onClose();
       window.location.reload();
