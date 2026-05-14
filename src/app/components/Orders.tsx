@@ -128,29 +128,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
     }
   };
 
-  const cancelOrder = async (orderId: string) => {
-    try {
-      const res = await fetch(`${API}/api/orders/${orderId}/cancel`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-      });
-
-      if (res.ok) {
-        setOrders(prev =>
-          prev.map(o =>
-            o.id === orderId
-              ? { ...o, status: 'cancelled' }
-              : o
-          )
-        );
-      }
-    } catch (err) {
-      console.error('Error cancelling order:', err);
-    }
-  };
-
   const filteredOrders = orders.filter(
     o => filter === 'all' || o.status === filter
   );
@@ -688,33 +665,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
           color: rgba(26, 58, 58, 0.6);
         }
 
-        .ord-cancel-btn {
-          font-family: 'Poppins', sans-serif;
-          font-size: 10px;
-          font-weight: 500;
-
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-
-          padding: 7px 14px;
-
-          border-radius: 100px;
-
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.25);
-
-          color: rgba(239,68,68,0.8);
-
-          cursor: pointer;
-
-          transition: all 0.25s ease;
-        }
-
-        .ord-cancel-btn:hover {
-          background: rgba(239,68,68,0.18);
-          border-color: rgba(239,68,68,0.4);
-        }
-
         .ord-admin {
           margin-top: 8px;
 
@@ -1056,17 +1006,6 @@ export function Orders({ isOpen, onClose }: OrdersProps) {
                             </>
                           )}
                         </div>
-
-                        {order.status === 'pending' && (
-                          <button
-                            className="ord-cancel-btn"
-                            onClick={() =>
-                              cancelOrder(order.id)
-                            }
-                          >
-                            Cancel
-                          </button>
-                        )}
                       </div>
                     </div>
                   );

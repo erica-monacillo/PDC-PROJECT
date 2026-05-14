@@ -32,7 +32,7 @@ export function Products() {
 
   const loadProducts = async () => {
     try {
-      const res = await fetch('https://pdc-project.onrender.com/api/products');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://pdc-project.onrender.com'}/api/products`);
       if (res.ok) setProducts(await res.json());
     } catch (e) {
       console.error(e);
